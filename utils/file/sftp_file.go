@@ -223,19 +223,18 @@ func GetFiles(client *sftp.Client, localPath, remotePath string) ([]TransferInfo
 	return files, walkErr
 }
 
-// DownloadFolder 下载远程目录到本地
-func DownloadFolder(client *sftp.Client, remotePath, localPath string) ([]TransferInfo, error) {
+// RecursiveGetFolderFiles 递归获取文件夹中的所有文件
+func RecursiveGetFolderFiles(client *sftp.Client, remotePath, localPath string) ([]TransferInfo, error) {
 	// 读取远程目录结构
 	remoteTree, err := GetFolderChild(client, remotePath)
 	if err != nil {
 		return nil, err
 	}
 
-	// 递归下载目录内容
-	return downloadDirectoryRecursive(client, remoteTree, localPath)
+	return recursiveGetFolderFiles(client, remoteTree, localPath)
 }
 
-func downloadDirectoryRecursive(client *sftp.Client, remoteTree *Node, localPath string) ([]TransferInfo, error) {
+func recursiveGetFolderFiles(client *sftp.Client, remoteTree *Node, localPath string) ([]TransferInfo, error) {
 	// 构建本地目录路径
 	localDirPath := filepath.Join(localPath, remoteTree.Name)
 
@@ -249,7 +248,7 @@ func downloadDirectoryRecursive(client *sftp.Client, remoteTree *Node, localPath
 		// 递归下载子目录和文件
 		for _, child := range remoteTree.Children {
 			if child.IsDir {
-				tx, err := DownloadFolder(client, child.Path, localDirPath)
+				tx, err := RecursiveGetFolderFiles(client, child.Path, localDirPath)
 				if err != nil {
 					return nil, err
 				}
