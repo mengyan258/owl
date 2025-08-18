@@ -1,6 +1,7 @@
 package file
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -58,12 +59,16 @@ func ReadDirTree(rootPath string, maxLevel int) (*Node, error) {
 	}
 
 	parentPath := filepath.Dir(rootPath)
+
+	isSymlink := info.Mode()&os.ModeSymlink != 0
+
 	node := &Node{
 		Name:       info.Name(),
 		Path:       rootPath,
 		IsDir:      info.IsDir(),
 		Size:       info.Size(),    // 文件大小
 		ModTime:    info.ModTime(), // 修改时间
+		IsSymlink:  isSymlink,
 		ParentPath: normalizePathSeparator(parentPath),
 	}
 	node.SizeInfo = node.HumanSize()
@@ -91,6 +96,8 @@ func ReadDirTree(rootPath string, maxLevel int) (*Node, error) {
 		if err != nil {
 			return node, err
 		}
+
+		isSymlink = fileInfo.Mode()&os.ModeSymlink != 0
 		childNode := &Node{
 			Name:       entry.Name(),
 			Path:       childPath,
@@ -99,6 +106,7 @@ func ReadDirTree(rootPath string, maxLevel int) (*Node, error) {
 			Size:       fileInfo.Size(),
 			SizeInfo:   "",
 			ModTime:    fileInfo.ModTime(),
+			IsSymlink:  isSymlink,
 		}
 		node.Children = append(node.Children, childNode)
 	}
@@ -146,7 +154,7 @@ func ReadFileSafely(path string, maxSize int64) (string, error) {
 	// 检测文件类型
 	mimeType := http.DetectContentType(buffer[:n])
 	if !isAllowedTextType(mimeType) {
-		return "", fmt.Errorf("只能打开文本文件: %s", mimeType)
+		return "", errors.New("只能打开文本文件")
 	}
 
 	// 重置文件指针到开头

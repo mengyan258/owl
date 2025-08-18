@@ -22,6 +22,7 @@ type Node struct {
 	Size       int64     `json:"size"`
 	SizeInfo   string    `json:"sizeInfo"`
 	ModTime    time.Time `json:"modTime"`
+	IsSymlink  bool      `json:"isSymlink"`
 }
 
 func (ft *Node) HumanSize() string {

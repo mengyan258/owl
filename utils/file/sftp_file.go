@@ -30,12 +30,14 @@ func GetFolderChild(client *sftp.Client, fullPath string) (*Node, error) {
 
 	parentPath := filepath.Dir(fullPath)
 
+	isSymlink := info.Mode()&os.ModeSymlink != 0
 	node := &Node{
 		Name:       info.Name(),
 		Path:       fullPath,
 		IsDir:      info.IsDir(),
 		Size:       info.Size(),
 		ModTime:    info.ModTime(),
+		IsSymlink:  isSymlink,
 		ParentPath: NormalizedRemotePath(parentPath),
 	}
 	node.SizeInfo = node.HumanSize()
@@ -60,14 +62,15 @@ func GetFolderChild(client *sftp.Client, fullPath string) (*Node, error) {
 
 		for _, entry := range entries {
 			childPath := filepath.ToSlash(filepath.Join(fullPath, entry.Name()))
-
+			isSymlink = entry.Mode()&os.ModeSymlink != 0
 			childNode := &Node{
 				Name:       entry.Name(),
 				Path:       childPath,
-				IsDir:      entry.IsDir(),
+				IsDir:      entry.IsDir() || isSymlink,
 				Size:       entry.Size(),
 				ModTime:    entry.ModTime(),
 				ParentPath: NormalizedRemotePath(fullPath),
+				IsSymlink:  isSymlink,
 			}
 			childNode.SizeInfo = childNode.HumanSize()
 
