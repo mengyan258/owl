@@ -23,6 +23,13 @@ func NormalizedRemotePath(remotePath string) string {
 
 // GetFolderChild 读取远程目录结构
 func GetFolderChild(client *sftp.Client, fullPath string) (*Node, error) {
+	if fullPath == "~" {
+		getwd, err := client.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		fullPath = getwd
+	}
 	info, err := client.Stat(fullPath)
 	if err != nil {
 		return nil, nil
