@@ -1,4 +1,4 @@
-package owl
+package router
 
 import (
 	"github.com/gin-gonic/gin"
@@ -163,7 +163,7 @@ func (i *RouterInfoBuilder) GetMenu() *Menu {
 // 获取函数名
 func nameOfFunction(f any) string {
 	fullName := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
-	// bit-labs.cn/gin-flex-admin/app/handle/v1.(*RoleHandle).FindById-fm
+	// bit-labs.cn/flex-admin/app/handle/v1.(*RoleHandle).FindById-fm
 	lastIndex := strings.LastIndex(fullName, ".")
 	if lastIndex > 0 {
 		return strings.Replace(fullName[lastIndex+1:], "-fm", "", 1)

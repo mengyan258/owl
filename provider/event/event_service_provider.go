@@ -2,6 +2,7 @@ package event
 
 import (
 	"bit-labs.cn/owl/contract/foundation"
+	"bit-labs.cn/owl/contract/log"
 	"github.com/asaskevich/EventBus"
 )
 
@@ -18,4 +19,10 @@ func (i *EventServiceProvider) Register() {
 }
 
 func (i *EventServiceProvider) Boot() {
+	err := i.app.Invoke(func(l log.Logger) {
+		l.Info("EventServiceProvider Booted")
+	})
+	if err != nil {
+		panic(err)
+	}
 }

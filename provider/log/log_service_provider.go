@@ -1,9 +1,9 @@
 package log
 
 import (
-	"bit-labs.cn/owl/conf"
 	"bit-labs.cn/owl/contract/foundation"
 	logContract "bit-labs.cn/owl/contract/log"
+	"bit-labs.cn/owl/provider/conf"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -25,9 +25,11 @@ func (i *LogServiceProvider) Register() {
 
 	i.app.Register(func(c *conf.Configure) logContract.Logger {
 		var cfg option
+
 		if err := c.GetConfig("app.log", &cfg); err != nil {
 			panic(err)
 		}
+
 		return NewFileImpl(&FileImplOptions{
 			StorePath:  i.app.StoragePath(""),
 			MaxSize:    cfg.MaxSize,

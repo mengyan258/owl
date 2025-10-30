@@ -1,9 +1,10 @@
 package db
 
 import (
-	"bit-labs.cn/owl/conf"
+	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/contract/log"
+	"bit-labs.cn/owl/provider/conf"
 	"gorm.io/gorm"
 	"path/filepath"
 )
@@ -17,14 +18,14 @@ type DBServiceProvider struct {
 func (i *DBServiceProvider) Register() {
 
 	i.app.Register(func(c *conf.Configure, l log.Logger) *gorm.DB {
+
 		var opt Options
 		err := c.GetConfig("database.db", &opt)
-		if err != nil {
-			panic(err)
-		}
+		owl.PanicIf(err)
+
 		if opt.Driver == Sqlite {
 			opt.Host = filepath.Join(i.app.ConfigPath(""), opt.Host)
-			l.Debug("sqlite path:", opt.Host)
+			l.Debug("use sqlite, path:", opt.Host)
 		}
 		return InitDB(&opt)
 	})

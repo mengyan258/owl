@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"bit-labs.cn/owl/conf/event"
 	"bit-labs.cn/owl/contract/foundation"
 	"bytes"
 	"fmt"
@@ -113,7 +112,7 @@ func (i *Configure) load(fileName, cfgType string, c any) (string, *viper.Viper)
 	v.WatchConfig()
 	// Register a callback function to handle the changes
 	v.OnConfigChange(func(e fsnotify.Event) {
-		i.eventBus.Publish(event.ConfigChangeEvent, e)
+		i.eventBus.Publish(ConfigChangeEvent, e)
 	})
 	return confFilePath, v
 }

@@ -1,11 +1,12 @@
 package owl
 
 import (
-	"bit-labs.cn/owl/conf"
 	"bit-labs.cn/owl/contract/foundation"
-	"bit-labs.cn/owl/event"
-	"bit-labs.cn/owl/log"
-	"bit-labs.cn/owl/provider"
+	logContract "bit-labs.cn/owl/contract/log"
+	conf2 "bit-labs.cn/owl/provider/conf"
+	"bit-labs.cn/owl/provider/event"
+	"bit-labs.cn/owl/provider/log"
+	"bit-labs.cn/owl/provider/router"
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
@@ -23,7 +24,7 @@ type SubApp interface {
 	RegisterRouters()
 	ServiceProviders() []foundation.ServiceProvider
 	Binds() []any
-	Menu() *Menu
+	Menu() *router.Menu
 	Commands() []*cobra.Command
 	// Bootstrap 应用启动前执行，如初始化配置,初始化数据，初始化表结构等
 	Bootstrap()
@@ -146,13 +147,14 @@ type Application struct {
 
 	runDir          string
 	name            string
-	menuManager     *MenuRepository
+	menuManager     *router.MenuRepository
 	serviceProvider []foundation.ServiceProvider
 	subApps         []SubApp
 	rootCmd         *cobra.Command
-	bootstrappers   []foundation.Bootstrapper
 	binds           []any
-	menus           []*Menu
+	menus           []*router.Menu
+
+	l logContract.Logger
 }
 
 func (i *Application) Version() string {
@@ -236,7 +238,12 @@ func (i *Application) IsDownForMaintenance() bool {
 func (i *Application) Register(providers ...any) {
 	for _, p := range providers {
 		err := i.Provide(p)
-		PanicIf(err)
+		if err != nil {
+			err = i.Invoke(func(l logContract.Logger) {
+				l.Info(err.Error())
+			})
+			PanicIf(err)
+		}
 	}
 }
 
@@ -326,7 +333,6 @@ func NewApp(apps ...SubApp) *Application {
 		rootCmd:   &cobra.Command{Use: "owl"},
 		Container: dig.New(),
 	}
-	// i.BootstrapWith([]string{"loadEnv", "loadConfig"})
 
 	i.setBasePath()
 	i.registerBaseBindings()
@@ -358,8 +364,9 @@ func PanicIf(err error) {
 	}
 }
 func (i *Application) Run() {
-	err := i.Invoke(func(router *gin.Engine, configure *conf.Configure) {
+	err := i.Invoke(func(router *gin.Engine, configure *conf2.Configure, l logContract.Logger) {
 
+		i.l = l
 		var AppConfig struct {
 			Listen string
 		}
@@ -367,19 +374,24 @@ func (i *Application) Run() {
 		if err != nil {
 			return
 		}
-		router.Run(AppConfig.Listen)
+
+		_ = router.Run(AppConfig.Listen)
 	})
 	PanicIf(err)
 }
 
 func (i *Application) registerBaseServiceProviders() {
 	var baseProviders = []foundation.ServiceProvider{
-		&conf.ConfServiceProvider{},
-		&event.EventServiceProvider{},
+		&conf2.ConfServiceProvider{},
 		&log.LogServiceProvider{},
-		&provider.RouterServiceProvider{},
+		&event.EventServiceProvider{},
+		&router.RouterServiceProvider{},
 	}
-	i.serviceProvider = append(i.serviceProvider, baseProviders...)
+
+	for _, serviceProvider := range baseProviders {
+		i.injectAppInstance(serviceProvider)
+		serviceProvider.Register()
+	}
 }
 
 func (i *Application) RegisterServiceProviders(serviceProvider ...foundation.ServiceProvider) {
@@ -414,6 +426,7 @@ func (i *Application) newSubApp(apps ...SubApp) {
 		app.Bootstrap()
 	}
 
+	// 将所有子应用的菜单添加到菜单管理器
 	i.menuManager.AddMenu(i.menus...)
 
 	for _, serviceProvider := range i.serviceProvider {
@@ -429,9 +442,11 @@ func (i *Application) injectAppInstance(target any) {
 }
 
 func (i *Application) registerBaseBindings() {
-	err := i.Provide(func() *Application { return i }, dig.As(new(foundation.Application)))
+	err := i.Provide(func() *Application {
+		return i
+	}, dig.As(new(foundation.Application)))
 	PanicIf(err)
 
-	err = i.Provide(NewMenuRepository)
+	err = i.Provide(router.NewMenuRepository)
 	PanicIf(err)
 }
