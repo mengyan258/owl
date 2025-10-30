@@ -1,0 +1,89 @@
+# MQTT 配置
+# MQTT 服务器地址
+broker: tcp://127.0.0.1:1883
+
+# 客户端配置
+client:
+  # 客户端 ID，如果为空则自动生成
+  id: ""
+  # 用户名
+  username: ""
+  # 密码
+  password: ""
+  # 清理会话
+  clean-session: true
+  # 保持连接时间（秒）
+  keep-alive: 60
+  # 连接超时时间（秒）
+  connect-timeout: 30
+  # 自动重连
+  auto-reconnect: true
+  # 重连间隔（秒）
+  reconnect-interval: 5
+  # 最大重连次数，0 表示无限重连
+  max-reconnect-attempts: 0
+
+# TLS/SSL 配置
+tls:
+  # 是否启用 TLS
+  enabled: false
+  # 证书文件路径
+  cert-file: ""
+  # 私钥文件路径
+  key-file: ""
+  # CA 证书文件路径
+  ca-file: ""
+  # 跳过证书验证
+  insecure-skip-verify: false
+
+# 消息配置
+message:
+  # 默认 QoS 级别 (0, 1, 2)
+  default-qos: 1
+  # 是否保留消息
+  retain: false
+  # 消息超时时间（秒）
+  timeout: 30
+
+# 订阅配置
+subscription:
+  # 默认订阅 QoS 级别
+  default-qos: 1
+  # 订阅超时时间（秒）
+  timeout: 10
+
+# 发布配置
+publish:
+  # 默认发布 QoS 级别
+  default-qos: 1
+  # 发布超时时间（秒）
+  timeout: 10
+  # 是否等待确认
+  wait-for-ack: true
+
+# 日志配置
+logging:
+  # 是否启用调试日志
+  debug: false
+  # 是否记录连接事件
+  log-connection-events: true
+  # 是否记录消息事件
+  log-message-events: false
+
+# 缓冲区配置
+buffer:
+  # 发送缓冲区大小
+  send-buffer-size: 1024
+  # 接收缓冲区大小
+  receive-buffer-size: 1024
+  # 消息队列大小
+  message-queue-size: 100
+
+# 性能配置
+performance:
+  # 最大并发连接数
+  max-concurrent-connections: 100
+  # 消息处理器数量
+  message-handler-count: 10
+  # 批量处理大小
+  batch-size: 50

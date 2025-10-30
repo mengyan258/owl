@@ -1,0 +1,170 @@
+# RabbitMQ 配置
+# RabbitMQ 服务器地址
+url: amqp://guest:guest@localhost:5672/
+
+# 连接配置
+connection:
+  # 主机地址
+  host: localhost
+  # 端口
+  port: 5672
+  # 用户名
+  username: guest
+  # 密码
+  password: guest
+  # 虚拟主机
+  vhost: /
+  # 连接超时时间（秒）
+  timeout: 30
+  # 心跳间隔（秒）
+  heartbeat: 60
+  # 是否启用 TLS
+  tls: false
+  # 最大重连次数
+  max-reconnect-attempts: 5
+  # 重连间隔（秒）
+  reconnect-interval: 5
+
+# TLS/SSL 配置
+tls:
+  # 是否启用 TLS
+  enabled: false
+  # 证书文件路径
+  cert-file: ""
+  # 私钥文件路径
+  key-file: ""
+  # CA 证书文件路径
+  ca-file: ""
+  # 跳过证书验证
+  insecure-skip-verify: false
+
+# 连接池配置
+pool:
+  # 最大连接数
+  max-connections: 10
+  # 最小空闲连接数
+  min-idle-connections: 2
+  # 连接空闲超时时间（秒）
+  idle-timeout: 300
+  # 连接最大生存时间（秒）
+  max-lifetime: 3600
+
+# 交换机配置
+exchange:
+  # 默认交换机名称
+  default-name: ""
+  # 默认交换机类型 (direct, topic, fanout, headers)
+  default-type: direct
+  # 是否持久化
+  durable: true
+  # 是否自动删除
+  auto-delete: false
+  # 是否为内部交换机
+  internal: false
+  # 是否等待服务器确认
+  no-wait: false
+
+# 队列配置
+queue:
+  # 默认队列名称前缀
+  name-prefix: ""
+  # 是否持久化
+  durable: true
+  # 是否自动删除
+  auto-delete: false
+  # 是否排他性
+  exclusive: false
+  # 是否等待服务器确认
+  no-wait: false
+  # 队列参数
+  args:
+    # 消息 TTL（毫秒）
+    x-message-ttl: 0
+    # 队列 TTL（毫秒）
+    x-expires: 0
+    # 最大队列长度
+    x-max-length: 0
+    # 最大队列大小（字节）
+    x-max-length-bytes: 0
+    # 死信交换机
+    x-dead-letter-exchange: ""
+    # 死信路由键
+    x-dead-letter-routing-key: ""
+
+# 消费者配置
+consumer:
+  # 默认消费者标签
+  tag: ""
+  # 是否自动确认
+  auto-ack: false
+  # 是否排他性
+  exclusive: false
+  # 是否等待服务器确认
+  no-wait: false
+  # 预取数量
+  prefetch-count: 1
+  # 预取大小（字节）
+  prefetch-size: 0
+  # 是否全局预取
+  global-prefetch: false
+
+# 生产者配置
+producer:
+  # 是否强制发布
+  mandatory: false
+  # 是否立即发布
+  immediate: false
+  # 发布确认模式
+  confirm-mode: false
+  # 发布超时时间（秒）
+  timeout: 30
+
+# 消息配置
+message:
+  # 默认内容类型
+  content-type: "application/json"
+  # 默认内容编码
+  content-encoding: ""
+  # 消息持久化
+  delivery-mode: 2
+  # 消息优先级
+  priority: 0
+  # 消息 TTL（毫秒）
+  expiration: ""
+
+# 重试配置
+retry:
+  # 是否启用重试
+  enabled: true
+  # 最大重试次数
+  max-attempts: 3
+  # 重试间隔（秒）
+  interval: 1
+  # 退避倍数
+  backoff-multiplier: 2.0
+  # 最大重试间隔（秒）
+  max-interval: 60
+
+# 日志配置
+logging:
+  # 是否启用调试日志
+  debug: false
+  # 是否记录连接事件
+  log-connection-events: true
+  # 是否记录消息事件
+  log-message-events: false
+  # 是否记录错误详情
+  log-error-details: true
+
+# 监控配置
+monitoring:
+  # 是否启用监控
+  enabled: false
+  # 监控间隔（秒）
+  interval: 30
+  # 是否监控队列状态
+  monitor-queues: true
+  # 是否监控交换机状态
+  monitor-exchanges: true
+  # 是否监控连接状态
+  monitor-connections: true
