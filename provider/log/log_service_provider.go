@@ -1,9 +1,9 @@
 package log
 
 import (
-	"bit-labs.cn/owl/bootstrap/conf"
 	"bit-labs.cn/owl/contract/foundation"
 	logContract "bit-labs.cn/owl/contract/log"
+	"bit-labs.cn/owl/provider/conf"
 	_ "embed"
 	"go.uber.org/zap/zapcore"
 )

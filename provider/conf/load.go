@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/asaskevich/EventBus"
 	"github.com/fsnotify/fsnotify"
+	"github.com/joho/godotenv"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/spf13/viper"
 	"io/fs"
@@ -29,7 +30,11 @@ func NewConfigure(app foundation.Application, bus EventBus.Bus) *Configure {
 		confDir:        confDir,
 		cfgFileNameMap: make(map[string]map[string]any),
 		eventBus:       bus,
+		app:            app,
 	}
+
+	// 加载 .env 文件
+	manager.loadEnvFiles()
 
 	err := filepath.Walk(confDir, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
@@ -48,6 +53,41 @@ func NewConfigure(app foundation.Application, bus EventBus.Bus) *Configure {
 		panic(err)
 	}
 	return &manager
+}
+
+// loadEnvFiles 加载环境变量文件
+func (i *Configure) loadEnvFiles() {
+	// 获取应用根目录
+	basePath := i.app.BasePath("")
+
+	// 尝试加载多个可能的 .env 文件，按优先级顺序
+	envFiles := []string{
+		filepath.Join(basePath, ".env.local"),               // 本地环境（最高优先级）
+		filepath.Join(basePath, ".env."+i.getEnvironment()), // 环境特定文件
+		filepath.Join(basePath, ".env"),                     // 默认环境文件
+	}
+
+	for _, envFile := range envFiles {
+		if _, err := os.Stat(envFile); err == nil {
+			if err := godotenv.Load(envFile); err != nil {
+				fmt.Printf("Warning: Failed to load env file %s: %v\n", envFile, err)
+			} else {
+				fmt.Printf("Loaded environment file: %s\n", envFile)
+			}
+		}
+	}
+}
+
+// getEnvironment 获取当前环境
+func (i *Configure) getEnvironment() string {
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = os.Getenv("ENVIRONMENT")
+	}
+	if env == "" {
+		env = "development"
+	}
+	return env
 }
 
 func (i *Configure) GetConfig(key string, v any) error {
@@ -94,6 +134,17 @@ func (i *Configure) load(fileName, cfgType string, c any) (string, *viper.Viper)
 	v := viper.New()
 	v.SetConfigType(cfgType)
 	v.SetConfigFile(confFilePath)
+
+	// 启用环境变量支持
+	v.AutomaticEnv()
+
+	// 设置环境变量前缀，支持按模块分组
+	envPrefix := strings.ToUpper(fileName)
+	v.SetEnvPrefix(envPrefix)
+
+	// 设置环境变量键名替换规则
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+
 	//i.l.Info("配置文件: ", confFilePath)
 	cfg, err := os.ReadFile(confFilePath)
 	if err != nil {

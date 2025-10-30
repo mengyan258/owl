@@ -1,8 +1,8 @@
 package router
 
 import (
-	"bit-labs.cn/owl/bootstrap/conf"
 	"bit-labs.cn/owl/contract/foundation"
+	"bit-labs.cn/owl/provider/conf"
 	"bit-labs.cn/owl/provider/router/middleware"
 	_ "embed"
 	"github.com/gin-contrib/cors"

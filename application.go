@@ -1,11 +1,11 @@
 package owl
 
 import (
-	"bit-labs.cn/owl/bootstrap/conf"
-	"bit-labs.cn/owl/bootstrap/event"
-	"bit-labs.cn/owl/bootstrap/log"
 	"bit-labs.cn/owl/contract/foundation"
 	logContract "bit-labs.cn/owl/contract/log"
+	"bit-labs.cn/owl/provider/conf"
+	"bit-labs.cn/owl/provider/event"
+	"bit-labs.cn/owl/provider/log"
 	"bit-labs.cn/owl/provider/router"
 	"context"
 	"github.com/gin-gonic/gin"
