@@ -1,0 +1,80 @@
+# Redis 配置
+# 连接模式: single(单机) 或 cluster(集群)
+mode: single
+
+# 单机模式配置
+single:
+  # Redis 服务器地址
+  host: 127.0.0.1
+  # Redis 服务器端口
+  port: 6379
+  # Redis 密码，如果没有密码则留空
+  password: ""
+  # Redis 数据库索引 (0-15)
+  database: 0
+
+# 集群模式配置
+cluster:
+  # 集群节点地址列表
+  addrs:
+    - "127.0.0.1:7000"
+    - "127.0.0.1:7001"
+    - "127.0.0.1:7002"
+    - "127.0.0.1:7003"
+    - "127.0.0.1:7004"
+    - "127.0.0.1:7005"
+  # 集群密码
+  password: ""
+  # 最大重定向次数
+  max-redirects: 3
+  # 是否只读从节点
+  read-only: false
+  # 路由模式: by_latency(延迟优先) 或 randomly(随机)
+  route-by-latency: false
+  route-randomly: false
+
+# 连接池配置
+pool:
+  # 连接池大小
+  pool-size: 10
+  # 最小空闲连接数
+  min-idle-conns: 5
+  # 最大重试次数
+  max-retries: 3
+  # 最小重试间隔 (毫秒)
+  min-retry-backoff: 8
+  # 最大重试间隔 (毫秒)
+  max-retry-backoff: 512
+
+# 超时配置
+timeout:
+  # 连接超时时间 (秒)
+  dial-timeout: 5
+  # 读取超时时间 (秒)
+  read-timeout: 3
+  # 写入超时时间 (秒)
+  write-timeout: 3
+  # 连接池超时时间 (秒)
+  pool-timeout: 4
+
+# 连接管理配置
+connection:
+  # 空闲连接检查频率 (分钟)
+  idle-check-frequency: 60
+  # 空闲连接超时时间 (分钟)
+  idle-timeout: 300
+  # 最大连接存活时间 (分钟)
+  max-conn-age: 0
+
+# 自动重连配置
+reconnect:
+  # 是否启用自动重连
+  enabled: true
+  # 重连间隔 (秒)
+  interval: 5
+  # 最大重连次数 (0表示无限重连)
+  max-attempts: 0
+  # 重连指数退避倍数
+  backoff-multiplier: 2.0
+  # 最大重连间隔 (秒)
+  max-interval: 300

@@ -388,9 +388,25 @@ func (i *Application) registerBaseServiceProviders() {
 		&router.RouterServiceProvider{},
 	}
 
-	for _, serviceProvider := range baseProviders {
+	i.bootServiceProviders(baseProviders...)
+}
+
+func (i *Application) bootServiceProviders(provider ...foundation.ServiceProvider) {
+	// 注册服务提供者
+	for _, serviceProvider := range provider {
 		i.injectAppInstance(serviceProvider)
 		serviceProvider.Register()
+
+		cfgFileGen := serviceProvider.GenerateConf()
+		if cfgFileGen != nil {
+			for fileName, content := range cfgFileGen {
+				confFile := i.ConfigPath("") + "/" + fileName
+				_, err := os.Stat(confFile)
+				if os.IsNotExist(err) {
+					_ = os.WriteFile(confFile, []byte(content), 0644)
+				}
+			}
+		}
 	}
 }
 
@@ -409,10 +425,7 @@ func (i *Application) newSubApp(apps ...SubApp) {
 		i.serviceProvider = append(i.serviceProvider, app.ServiceProviders()...)
 	}
 
-	for _, serviceProvider := range i.serviceProvider {
-		i.injectAppInstance(serviceProvider)
-		serviceProvider.Register()
-	}
+	i.bootServiceProviders(i.serviceProvider...)
 
 	for _, bind := range i.binds {
 		err := i.Provide(bind)

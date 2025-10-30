@@ -1,0 +1,6 @@
+# 日志配置
+level: -1
+max-size: 100
+max-age: 7
+max-backups: 3
+file-name: runtime

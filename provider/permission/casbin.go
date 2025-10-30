@@ -1,4 +1,4 @@
-package provider
+package permission
 
 import (
 	"bit-labs.cn/owl/contract/foundation"
@@ -47,4 +47,8 @@ func (i *GuardProvider) Register() {
 	})
 }
 func (i *GuardProvider) Boot() {
+}
+
+func (i *GuardProvider) GenerateConf() map[string]string {
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"bit-labs.cn/owl/contract/foundation"
 	logContract "bit-labs.cn/owl/contract/log"
 	"bit-labs.cn/owl/provider/conf"
+	_ "embed"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -26,7 +27,7 @@ func (i *LogServiceProvider) Register() {
 	i.app.Register(func(c *conf.Configure) logContract.Logger {
 		var cfg option
 
-		if err := c.GetConfig("app.log", &cfg); err != nil {
+		if err := c.GetConfig("log", &cfg); err != nil {
 			panic(err)
 		}
 
@@ -43,4 +44,13 @@ func (i *LogServiceProvider) Register() {
 
 func (i *LogServiceProvider) Boot() {
 
+}
+
+//go:embed log.yaml
+var logConf string
+
+func (i *LogServiceProvider) GenerateConf() map[string]string {
+	return map[string]string{
+		"log.yaml": logConf,
+	}
 }

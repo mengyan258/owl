@@ -1,0 +1,132 @@
+# Gin 路由配置
+# 运行模式: debug, release, test
+mode: debug
+
+# 服务器配置
+server:
+  # 监听地址
+  host: "0.0.0.0"
+  # 监听端口
+  port: 8080
+  # 读取超时时间（秒）
+  read-timeout: 60
+  # 写入超时时间（秒）
+  write-timeout: 60
+  # 空闲超时时间（秒）
+  idle-timeout: 60
+  # 最大请求头大小（字节）
+  max-header-bytes: 1048576
+
+# 中间件配置
+middleware:
+  # 启用恢复中间件
+  recovery: true
+  # 启用日志中间件
+  logger: true
+  # 启用 CORS 中间件
+  cors: true
+  # 启用请求 ID 中间件
+  request-id: true
+  # 启用限流中间件
+  rate-limit: false
+
+# CORS 配置
+cors:
+  # 允许的源
+  allowed-origins:
+    - "*"
+  # 允许的方法
+  allowed-methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+    - "PATCH"
+  # 允许的请求头
+  allowed-headers:
+    - "Origin"
+    - "Content-Type"
+    - "Accept"
+    - "Authorization"
+    - "X-Requested-With"
+    - "X-Request-ID"
+  # 暴露的响应头
+  exposed-headers:
+    - "X-Request-ID"
+  # 是否允许凭证
+  allow-credentials: true
+  # 预检请求缓存时间（秒）
+  max-age: 86400
+
+# 限流配置
+rate-limit:
+  # 每秒请求数
+  requests-per-second: 100
+  # 突发请求数
+  burst: 200
+  # 限流键生成器: ip, user, custom
+  key-generator: "ip"
+
+# 静态文件配置
+static:
+  # 启用静态文件服务
+  enabled: false
+  # 静态文件路径
+  path: "/static"
+  # 静态文件根目录
+  root: "./static"
+  # 是否列出目录
+  list-directory: false
+
+# 模板配置
+template:
+  # 启用模板引擎
+  enabled: false
+  # 模板文件路径
+  pattern: "templates/*"
+  # 模板分隔符
+  delims:
+    left: "{{"
+    right: "}}"
+
+# 安全配置
+security:
+  # 启用 HTTPS 重定向
+  https-redirect: false
+  # 启用 HSTS
+  hsts: false
+  # HSTS 最大年龄（秒）
+  hsts-max-age: 31536000
+  # 启用内容类型嗅探保护
+  content-type-nosniff: true
+  # 启用 XSS 保护
+  xss-protection: true
+  # 启用点击劫持保护
+  frame-deny: true
+
+# 日志配置
+log:
+  # 启用访问日志
+  access-log: true
+  # 访问日志格式: combined, common, short, tiny
+  access-log-format: "combined"
+  # 跳过路径（不记录访问日志）
+  skip-paths:
+    - "/health"
+    - "/metrics"
+    - "/favicon.ico"
+
+# 健康检查配置
+health:
+  # 启用健康检查端点
+  enabled: true
+  # 健康检查路径
+  path: "/health"
+
+# 指标配置
+metrics:
+  # 启用指标端点
+  enabled: false
+  # 指标路径
+  path: "/metrics"

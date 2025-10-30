@@ -21,3 +21,7 @@ func (i *ConfServiceProvider) Register() {
 func (i *ConfServiceProvider) Boot() {
 
 }
+
+func (i *ConfServiceProvider) GenerateConf() map[string]string {
+	return nil
+}

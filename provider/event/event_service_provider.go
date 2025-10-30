@@ -26,3 +26,7 @@ func (i *EventServiceProvider) Boot() {
 		panic(err)
 	}
 }
+
+func (i *EventServiceProvider) GenerateConf() map[string]string {
+	return nil
+}
