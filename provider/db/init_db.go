@@ -2,10 +2,7 @@ package db
 
 import (
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	"log"
-	"os"
 	"time"
 )
 
@@ -46,24 +43,14 @@ func InitDB(opt *Options, plugins ...gorm.Plugin) *gorm.DB {
 		panic("不支持的数据库类型")
 	}
 
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold: time.Second, // 慢 SQL 阈值
-			LogLevel:      logger.Info, // Log level
-			Colorful:      false,       // 禁用彩色打印
-		},
-	)
-
 	gormCfg := &gorm.Config{
 		PrepareStmt:                              false,
 		DisableForeignKeyConstraintWhenMigrating: true,
 		NamingStrategy: schema.NamingStrategy{
 			//单数表名
 			SingularTable: true,
-			TablePrefix:   "admin_",
 		},
-		Logger:                 newLogger,
+
 		SkipDefaultTransaction: true,
 	}
 

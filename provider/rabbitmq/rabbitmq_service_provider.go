@@ -1,11 +1,12 @@
 package rabbitmq
 
 import (
+	"bit-labs.cn/owl/bootstrap/conf"
+	"bit-labs.cn/owl/contract/log"
 	_ "embed"
 
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
-	"bit-labs.cn/owl/provider/conf"
 )
 
 var _ foundation.ServiceProvider = (*RabbitMQServiceProvider)(nil)
@@ -14,23 +15,20 @@ type RabbitMQServiceProvider struct {
 	app foundation.Application
 }
 
-func NewRabbitMQServiceProvider(app foundation.Application) *RabbitMQServiceProvider {
-	return &RabbitMQServiceProvider{
-		app: app,
-	}
-}
-
 func (r *RabbitMQServiceProvider) Register() {
-	r.app.Register(func(c *conf.Configure) *RabbitMQClient {
+	r.app.Register(func(c *conf.Configure, l log.Logger) *RabbitMQClient {
 		var opt Options
 		err := c.GetConfig("rabbitmq", &opt)
 		owl.PanicIf(err)
 
-		return InitRabbitMQ(&opt)
+		return NewRabbitMQ(&opt, l)
 	})
 }
 
 func (r *RabbitMQServiceProvider) Boot() {
+	r.app.Invoke(func(client *RabbitMQClient) {
+		client.Connect()
+	})
 }
 
 //go:embed rabbitmq.yaml

@@ -1,11 +1,11 @@
 package redis
 
 import (
+	"bit-labs.cn/owl/bootstrap/conf"
 	_ "embed"
 
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
-	"bit-labs.cn/owl/provider/conf"
 	"github.com/redis/go-redis/v9"
 )
 

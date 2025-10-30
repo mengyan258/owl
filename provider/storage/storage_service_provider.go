@@ -2,8 +2,8 @@ package storage
 
 import (
 	"bit-labs.cn/owl"
+	"bit-labs.cn/owl/bootstrap/conf"
 	"bit-labs.cn/owl/contract/foundation"
-	"bit-labs.cn/owl/provider/conf"
 	"bit-labs.cn/owl/provider/storage/impl"
 	_ "embed"
 )

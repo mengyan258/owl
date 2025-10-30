@@ -1,10 +1,11 @@
 package rabbitmq
 
 import (
+	"bit-labs.cn/owl/contract/log"
 	"context"
 	"crypto/tls"
 	"fmt"
-	"log"
+
 	"sync"
 	"time"
 
@@ -13,123 +14,113 @@ import (
 
 // Options RabbitMQ 配置选项
 type Options struct {
-	URL        string           `yaml:"url"`
-	Connection ConnectionConfig `yaml:"connection"`
-	TLS        TLSConfig        `yaml:"tls"`
-	Pool       PoolConfig       `yaml:"pool"`
-	Exchange   ExchangeConfig   `yaml:"exchange"`
-	Queue      QueueConfig      `yaml:"queue"`
-	Consumer   ConsumerConfig   `yaml:"consumer"`
-	Producer   ProducerConfig   `yaml:"producer"`
-	Message    MessageConfig    `yaml:"message"`
-	Retry      RetryConfig      `yaml:"retry"`
-	Logging    LoggingConfig    `yaml:"logging"`
-	Monitoring MonitoringConfig `yaml:"monitoring"`
+	Connection ConnectionConfig `json:"connection"`
+	TLS        TLSConfig        `json:"tls"`
+	Pool       PoolConfig       `json:"pool"`
+	Exchange   ExchangeConfig   `json:"exchange"`
+	Queue      QueueConfig      `json:"queue"`
+	Consumer   ConsumerConfig   `json:"consumer"`
+	Producer   ProducerConfig   `json:"producer"`
+	Message    MessageConfig    `json:"message"`
+	Retry      RetryConfig      `json:"retry"`
+	Monitoring MonitoringConfig `json:"monitoring"`
 }
 
 // ConnectionConfig 连接配置
 type ConnectionConfig struct {
-	Host                 string `yaml:"host"`
-	Port                 int    `yaml:"port"`
-	Username             string `yaml:"username"`
-	Password             string `yaml:"password"`
-	VHost                string `yaml:"vhost"`
-	Timeout              int    `yaml:"timeout"`
-	Heartbeat            int    `yaml:"heartbeat"`
-	TLS                  bool   `yaml:"tls"`
-	MaxReconnectAttempts int    `yaml:"max-reconnect-attempts"`
-	ReconnectInterval    int    `yaml:"reconnect-interval"`
+	Host                 string `json:"host"`
+	Port                 int    `json:"port"`
+	Username             string `json:"username"`
+	Password             string `json:"password"`
+	VHost                string `json:"vhost"`
+	Timeout              int    `json:"timeout"`
+	Heartbeat            int    `json:"heartbeat"`
+	TLS                  bool   `json:"tls"`
+	MaxReconnectAttempts int    `json:"max-reconnect-attempts"`
+	ReconnectInterval    int    `json:"reconnect-interval"`
 }
 
 // TLSConfig TLS/SSL 配置
 type TLSConfig struct {
-	Enabled            bool   `yaml:"enabled"`
-	CertFile           string `yaml:"cert-file"`
-	KeyFile            string `yaml:"key-file"`
-	CAFile             string `yaml:"ca-file"`
-	InsecureSkipVerify bool   `yaml:"insecure-skip-verify"`
+	Enabled            bool   `json:"enabled"`
+	CertFile           string `json:"cert-file"`
+	KeyFile            string `json:"key-file"`
+	CAFile             string `json:"ca-file"`
+	InsecureSkipVerify bool   `json:"insecure-skip-verify"`
 }
 
 // PoolConfig 连接池配置
 type PoolConfig struct {
-	MaxConnections     int `yaml:"max-connections"`
-	MinIdleConnections int `yaml:"min-idle-connections"`
-	IdleTimeout        int `yaml:"idle-timeout"`
-	MaxLifetime        int `yaml:"max-lifetime"`
+	MaxConnections     int `json:"max-connections"`
+	MinIdleConnections int `json:"min-idle-connections"`
+	IdleTimeout        int `json:"idle-timeout"`
+	MaxLifetime        int `json:"max-lifetime"`
 }
 
 // ExchangeConfig 交换机配置
 type ExchangeConfig struct {
-	DefaultName string `yaml:"default-name"`
-	DefaultType string `yaml:"default-type"`
-	Durable     bool   `yaml:"durable"`
-	AutoDelete  bool   `yaml:"auto-delete"`
-	Internal    bool   `yaml:"internal"`
-	NoWait      bool   `yaml:"no-wait"`
+	DefaultName string `json:"default-name"`
+	DefaultType string `json:"default-type"`
+	Durable     bool   `json:"durable"`
+	AutoDelete  bool   `json:"auto-delete"`
+	Internal    bool   `json:"internal"`
+	NoWait      bool   `json:"no-wait"`
 }
 
 // QueueConfig 队列配置
 type QueueConfig struct {
-	NamePrefix string                 `yaml:"name-prefix"`
-	Durable    bool                   `yaml:"durable"`
-	AutoDelete bool                   `yaml:"auto-delete"`
-	Exclusive  bool                   `yaml:"exclusive"`
-	NoWait     bool                   `yaml:"no-wait"`
-	Args       map[string]interface{} `yaml:"args"`
+	NamePrefix string                 `json:"name-prefix"`
+	Durable    bool                   `json:"durable"`
+	AutoDelete bool                   `json:"auto-delete"`
+	Exclusive  bool                   `json:"exclusive"`
+	NoWait     bool                   `json:"no-wait"`
+	Args       map[string]interface{} `json:"args"`
 }
 
 // ConsumerConfig 消费者配置
 type ConsumerConfig struct {
-	Tag            string `yaml:"tag"`
-	AutoAck        bool   `yaml:"auto-ack"`
-	Exclusive      bool   `yaml:"exclusive"`
-	NoWait         bool   `yaml:"no-wait"`
-	PrefetchCount  int    `yaml:"prefetch-count"`
-	PrefetchSize   int    `yaml:"prefetch-size"`
-	GlobalPrefetch bool   `yaml:"global-prefetch"`
+	Tag            string `json:"tag"`
+	AutoAck        bool   `json:"auto-ack"`
+	Exclusive      bool   `json:"exclusive"`
+	NoWait         bool   `json:"no-wait"`
+	PrefetchCount  int    `json:"prefetch-count"`
+	PrefetchSize   int    `json:"prefetch-size"`
+	GlobalPrefetch bool   `json:"global-prefetch"`
 }
 
 // ProducerConfig 生产者配置
 type ProducerConfig struct {
-	Mandatory   bool `yaml:"mandatory"`
-	Immediate   bool `yaml:"immediate"`
-	ConfirmMode bool `yaml:"confirm-mode"`
-	Timeout     int  `yaml:"timeout"`
+	Mandatory   bool `json:"mandatory"`
+	Immediate   bool `json:"immediate"`
+	ConfirmMode bool `json:"confirm-mode"`
+	Timeout     int  `json:"timeout"`
 }
 
 // MessageConfig 消息配置
 type MessageConfig struct {
-	ContentType     string `yaml:"content-type"`
-	ContentEncoding string `yaml:"content-encoding"`
-	DeliveryMode    uint8  `yaml:"delivery-mode"`
-	Priority        uint8  `yaml:"priority"`
-	Expiration      string `yaml:"expiration"`
+	ContentType     string `json:"content-type"`
+	ContentEncoding string `json:"content-encoding"`
+	DeliveryMode    uint8  `json:"delivery-mode"`
+	Priority        uint8  `json:"priority"`
+	Expiration      string `json:"expiration"`
 }
 
 // RetryConfig 重试配置
 type RetryConfig struct {
-	Enabled           bool    `yaml:"enabled"`
-	MaxAttempts       int     `yaml:"max-attempts"`
-	Interval          int     `yaml:"interval"`
-	BackoffMultiplier float64 `yaml:"backoff-multiplier"`
-	MaxInterval       int     `yaml:"max-interval"`
-}
-
-// LoggingConfig 日志配置
-type LoggingConfig struct {
-	Debug               bool `yaml:"debug"`
-	LogConnectionEvents bool `yaml:"log-connection-events"`
-	LogMessageEvents    bool `yaml:"log-message-events"`
-	LogErrorDetails     bool `yaml:"log-error-details"`
+	Enabled           bool    `json:"enabled"`
+	MaxAttempts       int     `json:"max-attempts"`
+	Interval          int     `json:"interval"`
+	BackoffMultiplier float64 `json:"backoff-multiplier"`
+	MaxInterval       int     `json:"max-interval"`
 }
 
 // MonitoringConfig 监控配置
 type MonitoringConfig struct {
-	Enabled            bool `yaml:"enabled"`
-	Interval           int  `yaml:"interval"`
-	MonitorQueues      bool `yaml:"monitor-queues"`
-	MonitorExchanges   bool `yaml:"monitor-exchanges"`
-	MonitorConnections bool `yaml:"monitor-connections"`
+	Enabled            bool `json:"enabled"`
+	Interval           int  `json:"interval"`
+	MonitorQueues      bool `json:"monitor-queues"`
+	MonitorExchanges   bool `json:"monitor-exchanges"`
+	MonitorConnections bool `json:"monitor-connections"`
 }
 
 // RabbitMQClient RabbitMQ 客户端包装器
@@ -140,10 +131,11 @@ type RabbitMQClient struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	mutex    sync.RWMutex
+	l        log.Logger
 }
 
-// InitRabbitMQ 初始化 RabbitMQ 客户端
-func InitRabbitMQ(opt *Options) *RabbitMQClient {
+// NewRabbitMQ 初始化 RabbitMQ 客户端
+func NewRabbitMQ(opt *Options, l log.Logger) *RabbitMQClient {
 	// 设置默认值
 	setDefaults(opt)
 
@@ -155,6 +147,7 @@ func InitRabbitMQ(opt *Options) *RabbitMQClient {
 		options:  opt,
 		ctx:      ctx,
 		cancel:   cancel,
+		l:        l,
 	}
 
 	return client
@@ -165,10 +158,7 @@ func (r *RabbitMQClient) Connect() error {
 	var err error
 
 	// 构建连接 URL
-	url := r.options.URL
-	if url == "" {
-		url = r.buildConnectionURL()
-	}
+	url := r.buildConnectionURL()
 
 	// 配置 TLS
 	var config *amqp.Config
@@ -201,13 +191,10 @@ func (r *RabbitMQClient) Connect() error {
 		return fmt.Errorf("failed to connect to RabbitMQ: %w", err)
 	}
 
-	if r.options.Logging.LogConnectionEvents {
-		log.Println("RabbitMQ client connected")
-	}
-
 	// 监听连接关闭事件
 	go r.handleConnectionClose()
 
+	r.l.Info("Connected to RabbitMQ")
 	return nil
 }
 
@@ -221,7 +208,7 @@ func (r *RabbitMQClient) Disconnect() error {
 	// 关闭所有通道
 	for name, ch := range r.channels {
 		if err := ch.Close(); err != nil {
-			log.Printf("Failed to close channel %s: %v", name, err)
+			r.l.Error("Failed to close channel %s: %v", name, err)
 		}
 	}
 	r.channels = make(map[string]*amqp.Channel)
@@ -231,6 +218,7 @@ func (r *RabbitMQClient) Disconnect() error {
 		return r.conn.Close()
 	}
 
+	r.l.Info("Disconnected from RabbitMQ")
 	return nil
 }
 
@@ -293,7 +281,7 @@ func (r *RabbitMQClient) DeclareQueue(name string) (amqp.Queue, error) {
 		r.options.Queue.AutoDelete,
 		r.options.Queue.Exclusive,
 		r.options.Queue.NoWait,
-		amqp.Table(r.options.Queue.Args),
+		r.options.Queue.Args,
 	)
 }
 
@@ -364,10 +352,6 @@ func (r *RabbitMQClient) Publish(exchange, routingKey string, body []byte) error
 		}
 	}
 
-	if r.options.Logging.LogMessageEvents {
-		log.Printf("Published message to exchange %s with routing key %s", exchange, routingKey)
-	}
-
 	return nil
 }
 
@@ -399,10 +383,6 @@ func (r *RabbitMQClient) Consume(queueName string, handler func(amqp.Delivery)) 
 					return
 				}
 
-				if r.options.Logging.LogMessageEvents {
-					log.Printf("Received message from queue %s", queueName)
-				}
-
 				handler(msg)
 			case <-r.ctx.Done():
 				return
@@ -426,7 +406,8 @@ func (r *RabbitMQClient) GetConnection() *amqp.Connection {
 // buildConnectionURL 构建连接 URL
 func (r *RabbitMQClient) buildConnectionURL() string {
 	scheme := "amqp"
-	if r.options.Connection.TLS {
+	// 当启用 TLS（任一位置）时，使用 amqps
+	if r.options.TLS.Enabled || r.options.Connection.TLS {
 		scheme = "amqps"
 	}
 
@@ -448,9 +429,6 @@ func (r *RabbitMQClient) handleConnectionClose() {
 	select {
 	case err := <-closeCh:
 		if err != nil {
-			if r.options.Logging.LogConnectionEvents {
-				log.Printf("RabbitMQ connection closed: %v", err)
-			}
 
 			// 尝试重连
 			if r.options.Connection.MaxReconnectAttempts > 0 {
@@ -465,28 +443,17 @@ func (r *RabbitMQClient) handleConnectionClose() {
 // reconnect 重连逻辑
 func (r *RabbitMQClient) reconnect() {
 	for attempt := 1; attempt <= r.options.Connection.MaxReconnectAttempts; attempt++ {
-		if r.options.Logging.LogConnectionEvents {
-			log.Printf("Attempting to reconnect to RabbitMQ (attempt %d/%d)", attempt, r.options.Connection.MaxReconnectAttempts)
-		}
 
 		time.Sleep(time.Duration(r.options.Connection.ReconnectInterval) * time.Second)
 
 		if err := r.Connect(); err != nil {
-			if r.options.Logging.LogErrorDetails {
-				log.Printf("Reconnection attempt %d failed: %v", attempt, err)
-			}
+
 			continue
 		}
 
-		if r.options.Logging.LogConnectionEvents {
-			log.Println("Successfully reconnected to RabbitMQ")
-		}
 		return
 	}
 
-	if r.options.Logging.LogErrorDetails {
-		log.Printf("Failed to reconnect to RabbitMQ after %d attempts", r.options.Connection.MaxReconnectAttempts)
-	}
 }
 
 // setDefaults 设置默认值

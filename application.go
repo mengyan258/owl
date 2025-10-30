@@ -1,11 +1,11 @@
 package owl
 
 import (
+	"bit-labs.cn/owl/bootstrap/conf"
+	"bit-labs.cn/owl/bootstrap/event"
+	"bit-labs.cn/owl/bootstrap/log"
 	"bit-labs.cn/owl/contract/foundation"
 	logContract "bit-labs.cn/owl/contract/log"
-	conf2 "bit-labs.cn/owl/provider/conf"
-	"bit-labs.cn/owl/provider/event"
-	"bit-labs.cn/owl/provider/log"
 	"bit-labs.cn/owl/provider/router"
 	"context"
 	"github.com/gin-gonic/gin"
@@ -364,7 +364,7 @@ func PanicIf(err error) {
 	}
 }
 func (i *Application) Run() {
-	err := i.Invoke(func(router *gin.Engine, configure *conf2.Configure, l logContract.Logger) {
+	err := i.Invoke(func(router *gin.Engine, configure *conf.Configure, l logContract.Logger) {
 
 		i.l = l
 		var AppConfig struct {
@@ -382,7 +382,7 @@ func (i *Application) Run() {
 
 func (i *Application) registerBaseServiceProviders() {
 	var baseProviders = []foundation.ServiceProvider{
-		&conf2.ConfServiceProvider{},
+		&conf.ConfServiceProvider{},
 		&log.LogServiceProvider{},
 		&event.EventServiceProvider{},
 		&router.RouterServiceProvider{},
