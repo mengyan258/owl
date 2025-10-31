@@ -2,6 +2,8 @@ package conf
 
 import (
 	"bit-labs.cn/owl/contract/foundation"
+	"bit-labs.cn/owl/contract/log"
+	"bit-labs.cn/owl/utils"
 	"bytes"
 	"fmt"
 	"github.com/asaskevich/EventBus"
@@ -20,11 +22,14 @@ type Configure struct {
 	cfgFileNameMap map[string]map[string]any // fileName => map[string]any
 	app            foundation.Application
 	eventBus       EventBus.Bus
+	l              log.Logger
 }
 
 func NewConfigure(app foundation.Application, bus EventBus.Bus) *Configure {
 
-	confDir := app.ConfigPath("conf")
+	confDir := app.GetConfigPath()
+
+	utils.PrintLnYellow("配置文件目录: ", confDir)
 
 	manager := Configure{
 		confDir:        confDir,
@@ -58,7 +63,7 @@ func NewConfigure(app foundation.Application, bus EventBus.Bus) *Configure {
 // loadEnvFiles 加载环境变量文件
 func (i *Configure) loadEnvFiles() {
 	// 获取应用根目录
-	basePath := i.app.BasePath("")
+	basePath := i.app.GetBasePath()
 
 	// 尝试加载多个可能的 .env 文件，按优先级顺序
 	envFiles := []string{

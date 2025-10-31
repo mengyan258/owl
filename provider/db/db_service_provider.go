@@ -25,7 +25,7 @@ func (i *DBServiceProvider) Register() {
 		owl.PanicIf(err)
 
 		if opt.Driver == Sqlite {
-			opt.Host = filepath.Join(i.app.ConfigPath(""), opt.Host)
+			opt.Host = filepath.Join(i.app.GetConfigPath(), opt.Host)
 			l.Debug("use sqlite, path:", opt.Host)
 		}
 		return InitDB(&opt)

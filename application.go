@@ -7,7 +7,9 @@ import (
 	"bit-labs.cn/owl/provider/event"
 	"bit-labs.cn/owl/provider/log"
 	"bit-labs.cn/owl/provider/router"
+	"bit-labs.cn/owl/utils"
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"go.uber.org/dig"
@@ -55,25 +57,9 @@ type Application struct {
 	 * @var string
 	 */
 	basePath string
-	/**
-	 * Indicates if the application has been bootstrapped before.
-	 *
-	 * @var bool
-	 */
-	hasBeenBootstrapped bool
-	/**
-	 * Indicates if the application has "booted".
-	 *
-	 * @var bool
-	 */
-	booted bool
 
-	/**
-	 * The array of booting callbacks.
-	 *
-	 * @var callable[]
-	 */
-	bootingCallbacks []types.Func
+	bootingCallbacks []func(application foundation.Application)
+	bootedCallbacks  []func(application foundation.Application)
 
 	/**
 	 * The array of terminating callbacks.
@@ -161,19 +147,17 @@ func (i *Application) Version() string {
 	return version
 }
 
-func (i *Application) BasePath(path string) string {
+func (i *Application) GetBasePath() string {
 	return i.basePath
 }
 
-func (i *Application) BootstrapPath(path string) string {
+func (i *Application) GetBootstrapPath() string {
 	return i.runDir
 }
 
-func (i *Application) ConfigPath(path string) string {
-	if path == "" {
-		path = "conf"
-	}
+func (i *Application) GetConfigPath() string {
 
+	var path = "conf"
 	confDir := filepath.Join(i.basePath, path)
 	// 如果 confDir 存在
 	if _, err := os.Stat(confDir); os.IsNotExist(err) {
@@ -183,44 +167,23 @@ func (i *Application) ConfigPath(path string) string {
 	return confDir
 }
 
-func (i *Application) DatabasePath(path string) string {
-	//TODO implement me
-	panic("implement me")
+func (i *Application) GetLangPath() string {
+	return i.basePath + "./lang"
 }
 
-func (i *Application) LangPath(path string) string {
-	return path
+func (i *Application) GetPublicPath() string {
+	return i.basePath + "./public"
 }
 
-func (i *Application) PublicPath(path string) string {
-	//TODO implement me
-	panic("implement me")
+func (i *Application) GetResourcePath() string {
+	return i.basePath + "./resource"
 }
 
-func (i *Application) ResourcePath(path string) string {
-	return ""
-}
-
-func (i *Application) StoragePath(path string) string {
+func (i *Application) GetStoragePath() string {
 	return i.basePath + "./storage"
 }
 
 func (i *Application) Environment(s ...string) (string, bool) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (i *Application) RunningInConsole() bool {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (i *Application) RunningUnitTests() bool {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (i *Application) HasDebugModeEnabled() bool {
 	//TODO implement me
 	panic("implement me")
 }
@@ -240,20 +203,11 @@ func (i *Application) Register(providers ...any) {
 		err := i.Provide(p)
 		if err != nil {
 			err = i.Invoke(func(l logContract.Logger) {
-				l.Info(err.Error())
+				//l.Info(err.Error())
 			})
 			PanicIf(err)
 		}
 	}
-}
-
-func (i *Application) RegisterDeferredProvider(provider string, service *string) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (i *Application) ResolveProvider(provider string) interface{} {
-	panic("implement me")
 }
 
 func (i *Application) Provide(function interface{}, opts ...dig.ProvideOption) error {
@@ -268,27 +222,15 @@ func (i *Application) Boot() {
 	panic("implement me")
 }
 
-func (i *Application) Booting(callback func()) {
-	//TODO implement me
-	panic("implement me")
+func (i *Application) Booting(callback func(application foundation.Application)) {
+	i.bootingCallbacks = append(i.bootingCallbacks, callback)
 }
 
-func (i *Application) Booted(callback func()) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (i *Application) BootstrapWith(bootstrappers []string) {
-	//TODO implement me
-	panic("implement me")
+func (i *Application) Booted(callback func(application foundation.Application)) {
+	i.bootedCallbacks = append(i.bootedCallbacks, callback)
 }
 
 func (i *Application) GetLocale() string {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (i *Application) GetNamespace() string {
 	//TODO implement me
 	panic("implement me")
 }
@@ -303,17 +245,7 @@ func (i *Application) HasBeenBootstrapped() bool {
 	panic("implement me")
 }
 
-func (i *Application) LoadDeferredProviders() {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (i *Application) SetLocale(locale string) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (i *Application) ShouldSkipMiddleware() bool {
 	//TODO implement me
 	panic("implement me")
 }
@@ -334,7 +266,7 @@ func NewApp(apps ...SubApp) *Application {
 		Container: dig.New(),
 	}
 
-	i.setBasePath()
+	i.setPath()
 	i.registerBaseBindings()
 	i.registerBaseServiceProviders()
 
@@ -343,12 +275,14 @@ func NewApp(apps ...SubApp) *Application {
 }
 
 // 设置路径
-func (i *Application) setBasePath() {
+func (i *Application) setPath() {
+	// 获取启动当前程序的目录
 	var err error
 	i.runDir, err = os.Getwd()
 	if err != nil {
 		panic(err)
 	}
+	utils.PrintLnGreen(fmt.Sprintf("程序启动目录：%s ", i.runDir))
 
 	// 获取当前可执行文件的路径
 	exePath, err := os.Executable()
@@ -356,6 +290,7 @@ func (i *Application) setBasePath() {
 		panic(err)
 	}
 
+	utils.PrintLnGreen(fmt.Sprintf("程序所在目录：%s", exePath))
 	i.basePath = filepath.Dir(exePath)
 }
 func PanicIf(err error) {
@@ -380,6 +315,7 @@ func (i *Application) Run() {
 	PanicIf(err)
 }
 
+// 注册基础服务提供者
 func (i *Application) registerBaseServiceProviders() {
 	var baseProviders = []foundation.ServiceProvider{
 		&conf.ConfServiceProvider{},
@@ -392,7 +328,7 @@ func (i *Application) registerBaseServiceProviders() {
 }
 
 func (i *Application) bootServiceProviders(provider ...foundation.ServiceProvider) {
-	// 注册服务提供者
+
 	for _, serviceProvider := range provider {
 		i.injectAppInstance(serviceProvider)
 		serviceProvider.Register()
@@ -400,7 +336,7 @@ func (i *Application) bootServiceProviders(provider ...foundation.ServiceProvide
 		cfgFileGen := serviceProvider.GenerateConf()
 		if cfgFileGen != nil {
 			for fileName, content := range cfgFileGen {
-				confFile := i.ConfigPath("") + "/" + fileName
+				confFile := i.GetConfigPath() + "/" + fileName
 				_, err := os.Stat(confFile)
 				if os.IsNotExist(err) {
 					_ = os.WriteFile(confFile, []byte(content), 0644)
@@ -408,10 +344,6 @@ func (i *Application) bootServiceProviders(provider ...foundation.ServiceProvide
 			}
 		}
 	}
-}
-
-func (i *Application) RegisterServiceProviders(serviceProvider ...foundation.ServiceProvider) {
-	i.serviceProvider = append(i.serviceProvider, serviceProvider...)
 }
 
 func (i *Application) newSubApp(apps ...SubApp) {

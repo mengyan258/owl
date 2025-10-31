@@ -1,7 +1,7 @@
 package mqtt
 
 import (
-	"bit-labs.cn/owl/bootstrap/conf"
+	"bit-labs.cn/owl/provider/conf"
 	_ "embed"
 
 	"bit-labs.cn/owl"

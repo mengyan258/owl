@@ -32,7 +32,7 @@ func (i *LogServiceProvider) Register() {
 		}
 
 		return NewFileImpl(&FileImplOptions{
-			StorePath:  i.app.StoragePath(""),
+			StorePath:  i.app.GetStoragePath(),
 			MaxSize:    cfg.MaxSize,
 			MaxBackups: cfg.MaxBackups,
 			MaxAge:     cfg.MaxAge,

@@ -179,9 +179,8 @@ func InitRouter(opt *RouterOptions) *gin.Engine {
 			Method: "GET",
 			Path:   opt.Health.Path,
 		}, func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
+			c.JSON(200, gin.H{
 				"status": "ok",
-				"time":   time.Now().Unix(),
 			})
 		})
 	}
@@ -190,10 +189,10 @@ func InitRouter(opt *RouterOptions) *gin.Engine {
 	if opt.Metrics.Enabled {
 		engine.GET(&gin.RouteInfo{
 			Method: "GET",
-			Path:   opt.Health.Path,
+			Path:   opt.Metrics.Path,
 		}, func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"metrics": "placeholder",
+			c.JSON(200, gin.H{
+				"status": "ok",
 			})
 		})
 	}
