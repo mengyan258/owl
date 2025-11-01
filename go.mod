@@ -4,8 +4,6 @@ go 1.24.0
 
 toolchain go1.24.5
 
-replace github.com/gin-gonic/gin v1.10.1 => ../gin
-
 require (
 	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef
 	github.com/aws/aws-sdk-go v1.55.8

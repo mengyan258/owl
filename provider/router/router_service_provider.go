@@ -175,10 +175,7 @@ func InitRouter(opt *RouterOptions) *gin.Engine {
 
 	// 配置健康检查
 	if opt.Health.Enabled {
-		engine.GET(&gin.RouteInfo{
-			Method: "GET",
-			Path:   opt.Health.Path,
-		}, func(c *gin.Context) {
+		engine.GET(opt.Health.Path, func(c *gin.Context) {
 			c.JSON(200, gin.H{
 				"status": "ok",
 			})
@@ -187,10 +184,7 @@ func InitRouter(opt *RouterOptions) *gin.Engine {
 
 	// 配置指标端点
 	if opt.Metrics.Enabled {
-		engine.GET(&gin.RouteInfo{
-			Method: "GET",
-			Path:   opt.Metrics.Path,
-		}, func(c *gin.Context) {
+		engine.GET(opt.Metrics.Path, func(c *gin.Context) {
 			c.JSON(200, gin.H{
 				"status": "ok",
 			})

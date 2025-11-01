@@ -20,6 +20,7 @@ func main() {
 	// 添加子命令
 	rootCmd.AddCommand(cli.NewCreateCommand())
 	rootCmd.AddCommand(cli.NewVersionCommand())
+	rootCmd.AddCommand(cli.NewRouteScanCommand())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
