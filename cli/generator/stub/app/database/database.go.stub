@@ -1,0 +1,14 @@
+package database
+
+import (
+	"{{.ModuleName}}/app/model"
+	"gorm.io/gorm"
+)
+
+// Migrate 数据库迁移
+func Migrate(db *gorm.DB) {
+	db.AutoMigrate(
+		&model.User{},
+		// 在这里添加更多模型
+	)
+}

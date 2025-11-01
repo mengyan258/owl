@@ -1,0 +1,13 @@
+package main
+
+import (
+	"{{.ModuleName}}/app"
+	"bit-labs.cn/owl"
+)
+
+func main() {
+	var subApps = []owl.SubApp{
+		&app.SubApp{{.AppName}}{},
+	}
+	owl.NewApp(subApps...).Run()
+}

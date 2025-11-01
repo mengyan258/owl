@@ -1,0 +1,61 @@
+package app
+
+import (
+	"{{.ModuleName}}/app/database"
+	v1 "{{.ModuleName}}/app/handle/v1"
+	"{{.ModuleName}}/app/handle/web"
+	"{{.ModuleName}}/app/repository"
+	"{{.ModuleName}}/app/route"
+	"{{.ModuleName}}/app/service"
+	"bit-labs.cn/owl"
+	"bit-labs.cn/owl/contract/foundation"
+	"bit-labs.cn/owl/provider/db"
+	"bit-labs.cn/owl/provider/router"
+	"github.com/spf13/cobra"
+	"gorm.io/gorm"
+)
+
+var _ owl.SubApp = (*SubApp{{.AppName}})(nil)
+
+type SubApp{{.AppName}} struct {
+	app foundation.Application
+}
+
+func (s *SubApp{{.AppName}}) Name() string {
+	return "{{.PackageName}}"
+}
+
+func (s *SubApp{{.AppName}}) Bootstrap() {
+	s.app.Invoke(func(db *gorm.DB) {
+		database.Migrate(db)
+	})
+}
+
+func (s *SubApp{{.AppName}}) RegisterRouters() {
+	route.InitApi(s.app, s.Name())
+	route.InitWeb(s.app, s.Name())
+}
+
+func (s *SubApp{{.AppName}}) Binds() []any {
+	return []any{
+		v1.NewApiHandle,
+		web.NewWebHandle,
+		service.NewUserService,
+		repository.NewUserRepository,
+	}
+}
+
+func (s *SubApp{{.AppName}}) ServiceProviders() []foundation.ServiceProvider {
+	return []foundation.ServiceProvider{
+		&db.DatabaseServiceProvider{},
+		&router.RouterServiceProvider{},
+	}
+}
+
+func (s *SubApp{{.AppName}}) Menu() *router.Menu {
+	return nil
+}
+
+func (s *SubApp{{.AppName}}) Commands() []*cobra.Command {
+	return nil
+}
