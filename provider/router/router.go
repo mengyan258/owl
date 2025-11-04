@@ -1,32 +1,61 @@
 package router
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"reflect"
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AccessLevel string
 
 const (
-	Public        AccessLevel = "开放接口"
-	Authenticated AccessLevel = "需要登录"
-	Authorized    AccessLevel = "需要授权"
-	AdminOnly     AccessLevel = "仅超管"
+	AccessPublic        AccessLevel = "开放接口"
+	AccessAuthenticated AccessLevel = "需要登录"
+	AccessAuthorized    AccessLevel = "需要授权"
+	AccessSuperAdmin    AccessLevel = "仅超管"
 )
 
 type RouterInfo struct {
-	Method      string          `json:"method"`      // 请求方式
-	Path        string          `json:"path"`        // 路由路径
-	Name        string          `json:"name"`        // 路由名称
-	Module      string          `json:"module"`      // 模块名称
-	Permission  string          `json:"permission"`  // 权限标识
-	Description string          `json:"description"` // 描述
-	AccessLevel AccessLevel     `json:"accessLevel"` // 访问级别
-	handle      gin.HandlerFunc // 处理函数
+	Group            string          `json:"group"`            // 接口分组
+	Method           string          `json:"method"`           // 请求方式
+	Path             string          `json:"path"`             // 路由路径
+	PathWithoutGroup string          `json:"pathWithoutGroup"` // 路由路径（不包含分组）
+	Name             string          `json:"name"`             // 路由名称
+	Module           string          `json:"module"`           // 模块名称
+	Permission       string          `json:"permission"`       // 权限标识
+	Description      string          `json:"description"`      // 描述
+	AccessLevel      AccessLevel     `json:"accessLevel"`      // 访问级别
+	handle           gin.HandlerFunc // 处理函数
+}
+
+// 全局路由注册表，用于保存所有注册进来的路由
+var (
+	routesLock       sync.RWMutex
+	registeredRoutes []RouterInfo
+)
+
+// RegisterRoute 保存已注册的路由信息
+func RegisterRoute(info *RouterInfo) {
+	if info == nil {
+		return
+	}
+	routesLock.Lock()
+	// 保存副本，避免外部修改影响内部存储
+	registeredRoutes = append(registeredRoutes, *info)
+	routesLock.Unlock()
+}
+
+// GetAllRoutes 返回所有已注册的路由信息（副本）
+func GetAllRoutes() []RouterInfo {
+	routesLock.RLock()
+	defer routesLock.RUnlock()
+	result := make([]RouterInfo, len(registeredRoutes))
+	copy(result, registeredRoutes)
+	return result
 }
 
 type Dep struct {
@@ -38,7 +67,7 @@ type RouterInfoBuilder struct {
 	moduleEn string // 模块英文名称
 	moduleZh string // 模块中文名称
 	appName  string
-	router   gin.IRoutes
+	router   *gin.RouterGroup
 	handler  Handler // 定义 handler，可以获取 handler 的 moduleName
 	lock     sync.RWMutex
 
@@ -52,7 +81,7 @@ type MenuOption struct {
 	Icon          string // 图标
 }
 
-func NewRouteInfoBuilder(appName string, handle Handler, router gin.IRoutes, meta MenuOption) *RouterInfoBuilder {
+func NewRouteInfoBuilder(appName string, handle Handler, router *gin.RouterGroup, meta MenuOption) *RouterInfoBuilder {
 	en, zh := handle.ModuleName()
 	return &RouterInfoBuilder{
 		moduleEn: en,
@@ -75,11 +104,13 @@ func NewRouteInfoBuilder(appName string, handle Handler, router gin.IRoutes, met
 func (i *RouterInfoBuilder) add(method, path string, accessLevel AccessLevel, handle gin.HandlerFunc) *RouterInfoBuilder {
 	i.lock.Lock()
 	i.currentRouter = &RouterInfo{
-		Method:      method,
-		Path:        path,
-		Module:      i.moduleZh,
-		AccessLevel: accessLevel,
-		handle:      handle,
+		Group:            i.router.BasePath(),
+		Method:           method,
+		Path:             i.router.BasePath() + path,
+		PathWithoutGroup: path,
+		Module:           i.moduleZh,
+		AccessLevel:      accessLevel,
+		handle:           handle,
 	}
 
 	return i
@@ -110,22 +141,21 @@ func (i *RouterInfoBuilder) Build() {
 	i.deps = nil // 清理依赖
 
 	// 构建菜单（按钮）
-	if i.currentRouter.AccessLevel == Authorized {
+	if i.currentRouter.AccessLevel == AccessAuthorized {
 		i.menu.Children = append(i.menu.Children, &Menu{
 			Name: handleName,
 			Meta: Meta{
 				Title: i.currentRouter.Name,
 			},
-			MenuType:    MenuTypeBtn,
-			Permissions: permissions,
+			MenuType:             MenuTypeBtn,
+			DependentsPermission: permissions,
 		})
 	}
 	// 添加路由
-	i.router.Handle(&gin.RouteInfo{
-		Method: i.currentRouter.Method,
-		Path:   i.currentRouter.Path,
-		Extra:  i.currentRouter,
-	}, i.currentRouter.handle)
+	i.router.Handle(i.currentRouter.Method, i.currentRouter.PathWithoutGroup, i.currentRouter.handle)
+
+	// 保存路由到全局注册表
+	RegisterRoute(i.currentRouter)
 }
 
 func (i *RouterInfoBuilder) Description(d string) *RouterInfoBuilder {

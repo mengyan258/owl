@@ -22,15 +22,15 @@ type Meta struct {
 }
 
 type Menu struct {
-	ID          string   `json:"id"`                 // 菜单唯一标识
-	Path        string   `json:"path"`               // 前端路由地址
-	Name        string   `json:"name"`               // 前端路由名称，组件名称
-	ParentID    string   `json:"parentId"`           // 父级菜单ID
-	Rank        int      `json:"rank,omitempty"`     // 菜单排序
-	Meta        Meta     `json:"meta"`               // 菜单 meta 信息，用于前端显示
-	MenuType    MenuType `json:"menuType"`           // 菜单类型，菜单，按钮
-	Permissions []string `json:"permissions"`        // 此动作需要拥有的api访问权限，如果是按钮，可以设置此字段
-	Children    []*Menu  `json:"children,omitempty"` // 子菜单
+	ID                   string   `json:"id"`                   // 菜单唯一标识
+	Path                 string   `json:"path"`                 // 前端路由地址
+	Name                 string   `json:"name"`                 // 前端路由名称，组件名称
+	ParentID             string   `json:"parentId"`             // 父级菜单ID
+	Rank                 int      `json:"rank,omitempty"`       // 菜单排序
+	Meta                 Meta     `json:"meta"`                 // 菜单 meta 信息，用于前端显示
+	MenuType             MenuType `json:"menuType"`             // 菜单类型，菜单，按钮
+	DependentsPermission []string `json:"dependentsPermission"` // 此动作需要拥有的api访问权限，如果是按钮，可以设置此字段
+	Children             []*Menu  `json:"children,omitempty"`   // 子菜单
 }
 
 // Clone 复制菜单
@@ -163,7 +163,7 @@ func iteratorGetPermission(menu *Menu, ids ...string) []string {
 	var permissions []string
 	for _, id := range ids {
 		if menu.ID == id {
-			permissions = append(permissions, menu.Permissions...)
+			permissions = append(permissions, menu.DependentsPermission...)
 		}
 	}
 

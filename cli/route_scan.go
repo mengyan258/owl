@@ -13,7 +13,7 @@ var routeScanCmd = &cobra.Command{
 	Use:   "route:scan [project-path]",
 	Short: "扫描项目中的 Swagger 注释并生成路由注册代码",
 	Long: `扫描项目中所有 handle 文件的 Swagger 注释，
-自动生成路由注册代码和 Swagger 文档。
+自动生成路由注册代码。
 
 示例:
   owl route:scan ./my-project
@@ -24,14 +24,12 @@ var routeScanCmd = &cobra.Command{
 
 var (
 	outputFile  string
-	swaggerFile string
 	showRoutes  bool
 	packageName string
 )
 
 func init() {
 	routeScanCmd.Flags().StringVarP(&outputFile, "output", "o", "", "输出路由文件路径 (默认: app/route/auto_generated.go)")
-	routeScanCmd.Flags().StringVarP(&swaggerFile, "swagger", "s", "", "输出 Swagger 文档路径 (默认: docs/swagger.json)")
 	routeScanCmd.Flags().BoolVarP(&showRoutes, "list", "l", false, "只显示扫描到的路由，不生成文件")
 	routeScanCmd.Flags().StringVarP(&packageName, "package", "p", "route", "生成文件的包名")
 }
@@ -87,12 +85,6 @@ func runRouteScan(cmd *cobra.Command, args []string) {
 	// 生成路由文件
 	if err := generateRouteFile(scanner, absPath); err != nil {
 		fmt.Printf("❌ 生成路由文件失败: %v\n", err)
-		return
-	}
-
-	// 生成 Swagger 文档
-	if err := generateSwaggerFile(scanner, absPath); err != nil {
-		fmt.Printf("❌ 生成 Swagger 文档失败: %v\n", err)
 		return
 	}
 
@@ -154,8 +146,12 @@ func generateRouteFile(scanner *generator.RouteScanner, projectPath string) erro
 
 	fmt.Printf("📝 生成路由文件: %s\n", output)
 
+	// 获取路由信息并创建生成器
+	routes := scanner.GetRoutes()
+	routeGenerator := generator.NewRouteGenerator(routes)
+
 	// 生成文件
-	if err := scanner.GenerateRouteFile(output); err != nil {
+	if err := routeGenerator.Generate(output); err != nil {
 		return err
 	}
 
@@ -163,36 +159,17 @@ func generateRouteFile(scanner *generator.RouteScanner, projectPath string) erro
 	return nil
 }
 
-// generateSwaggerFile 生成 Swagger 文档
-func generateSwaggerFile(scanner *generator.RouteScanner, projectPath string) error {
-	// 确定输出文件路径
-	output := swaggerFile
-	if output == "" {
-		output = filepath.Join(projectPath, "docs", "swagger.json")
-	}
-
-	fmt.Printf("📝 生成 Swagger 文档: %s\n", output)
-
-	// 创建生成器
-	generator := generator.NewRouteGenerator(scanner.GetRoutes())
-
-	// 生成文件
-	if err := generator.GenerateSwaggerDoc(output); err != nil {
-		return err
-	}
-
-	fmt.Printf("✅ Swagger 文档生成成功: %s\n", output)
-	return nil
-}
-
-// truncateString 截断字符串
 // generateBindsFile 生成 Binds 文件
 func generateBindsFile(scanner *generator.RouteScanner, projectPath string) error {
 	// 确定输出路径
 	bindsFile := filepath.Join(projectPath, "app", "auto_generated_binds.go")
 
+	// 获取绑定信息并创建生成器
+	binds := scanner.GetBinds()
+	bindsGenerator := generator.NewBindsGenerator(binds, projectPath)
+
 	// 生成文件
-	if err := scanner.GenerateBindsFile(bindsFile); err != nil {
+	if err := bindsGenerator.Generate(bindsFile); err != nil {
 		return err
 	}
 

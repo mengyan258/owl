@@ -28,6 +28,7 @@ type RouteInfo struct {
 	HandlerVar    string      `json:"handler_var"`    // 处理器变量名
 	HandlerCall   string      `json:"handler_call"`   // 处理器调用方法
 	Package       string      `json:"package"`        // 包名
+	Permission    string      `json:"permission"`
 }
 
 // ParamInfo 参数信息
@@ -180,6 +181,8 @@ func (rs *RouteScanner) parseSwaggerTag(text string, route *RouteInfo) {
 		rs.parseResponseTag(value, route, tag)
 	case "access":
 		route.Access = value
+	case "permission":
+		route.Permission = value
 	case "name":
 		route.Name = value
 	}
@@ -278,7 +281,6 @@ func (rs *RouteScanner) inferHandlerTypeFromFile(filePath, packageName string) s
 	return fmt.Sprintf("%s.%s", packageName, typeName.String())
 }
 
-// GenerateRouteFile 生成路由注册文件
 // ScanBinds 扫描所有的构造函数
 func (rs *RouteScanner) ScanBinds() error {
 	rs.binds = []BindInfo{}
@@ -364,15 +366,4 @@ func (rs *RouteScanner) buildConstructorName(packageName, funcName string) strin
 // GetBinds 获取所有绑定信息
 func (rs *RouteScanner) GetBinds() []BindInfo {
 	return rs.binds
-}
-
-func (rs *RouteScanner) GenerateRouteFile(outputPath string) error {
-	generator := NewRouteGenerator(rs.routes)
-	return generator.Generate(outputPath)
-}
-
-// GenerateBindsFile 生成 Binds 文件
-func (rs *RouteScanner) GenerateBindsFile(outputPath string) error {
-	generator := NewBindsGenerator(rs.binds, rs.projectPath)
-	return generator.Generate(outputPath)
 }
