@@ -1,6 +1,7 @@
 package owl
 
 import (
+	"bit-labs.cn/owl/provider/appconf"
 	"context"
 	"fmt"
 	"go/types"
@@ -323,6 +324,7 @@ func (i *Application) registerBaseServiceProviders() {
 		&log.LogServiceProvider{},
 		&event.EventServiceProvider{},
 		&router.RouterServiceProvider{},
+		&appconf.AppConfigServiceProvider{},
 	}
 
 	i.bootServiceProviders(baseProviders...)

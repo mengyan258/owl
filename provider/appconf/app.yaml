@@ -1,0 +1,7 @@
+app-name: ""
+app-env: ""
+
+admin:
+  username: admin
+  password: $2a$10$B.V9TGN9A.czs8lZsupQPuLEz2rNRdUBMSZS1gGpr2046VGkMsR.q
+  mark: 123qwe 默认密码，建议重新设置
