@@ -1,0 +1,14 @@
+provider: baidu
+baidu:
+  ak: "YOUR_BAIDU_AK"
+  sk: "YOUR_BAIDU_SK"
+  token_url: "https://aip.baidubce.com/oauth/2.0/token"
+  ocr_url: "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
+aliyun:
+  appcode: "YOUR_ALIYUN_APPCODE"
+  endpoint: "https://ocrapi.market.alicloudapi.com/ocr"
+tencent:
+  secret_id: "YOUR_TENCENT_SECRET_ID"
+  secret_key: "YOUR_TENCENT_SECRET_KEY"
+  region: "ap-guangzhou"
+  version: "2018-11-19"
