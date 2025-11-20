@@ -305,14 +305,15 @@ func (i *Application) Run() {
 
 		i.l = l
 		var AppConfig struct {
-			Listen string
+			Host string `json:"host"`
+			Port int    `json:"port"`
 		}
-		err := configure.GetConfig("app", &AppConfig)
+		err := configure.GetConfig("router.server", &AppConfig)
 		if err != nil {
 			return
 		}
 
-		_ = router.Run(AppConfig.Listen)
+		_ = router.Run(fmt.Sprintf("%s:%d", AppConfig.Host, AppConfig.Port))
 	})
 	PanicIf(err)
 }
