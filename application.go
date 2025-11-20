@@ -271,7 +271,7 @@ func NewApp(apps ...SubApp) *Application {
 	i.setPath()
 	i.registerBaseBindings()
 	i.registerBaseServiceProviders()
-
+	instance = i
 	i.newSubApp(apps...)
 	return i
 }
@@ -397,4 +397,8 @@ func (i *Application) registerBaseBindings() {
 
 	err = i.Provide(router.NewMenuRepository)
 	PanicIf(err)
+}
+
+func Instance() *Application {
+	return instance
 }

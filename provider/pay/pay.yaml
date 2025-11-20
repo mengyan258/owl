@@ -1,0 +1,28 @@
+default: ""
+
+alipay:
+  app_id: ""
+  private_key_path: ""
+  alipay_public_key_path: ""
+  notify_url: ""
+  return_url: ""
+  sandbox: false
+
+wechat:
+  mch_id: ""
+  app_id: ""
+  api_v3_key: ""
+  serial_no: ""
+  private_key_path: ""
+  platform_cert_path: ""
+  notify_url: ""
+
+card:
+  gateway: ""
+  merchant_id: ""
+  private_key_path: ""
+  public_key_path: ""
+  notify_url: ""
+  threeds_enabled: false
+
+dedup_ttl: 86400
