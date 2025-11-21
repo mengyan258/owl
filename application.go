@@ -269,9 +269,9 @@ func NewApp(apps ...SubApp) *Application {
 	}
 
 	i.setPath()
+	i.ensureConfDir()
 	i.registerBaseBindings()
 	i.registerBaseServiceProviders()
-	instance = i
 	i.newSubApp(apps...)
 	return i
 }
@@ -294,6 +294,14 @@ func (i *Application) setPath() {
 
 	utils.PrintLnGreen(fmt.Sprintf("程序所在目录：%s", exePath))
 	i.basePath = filepath.Dir(exePath)
+}
+
+func (i *Application) ensureConfDir() {
+	dir := i.GetConfigPath()
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0755)
+		PanicIf(err)
+	}
 }
 func PanicIf(err error) {
 	if err != nil {
@@ -398,8 +406,4 @@ func (i *Application) registerBaseBindings() {
 
 	err = i.Provide(router.NewMenuRepository)
 	PanicIf(err)
-}
-
-func Instance() *Application {
-	return instance
 }
