@@ -1,8 +1,9 @@
 package redis
 
 import (
-	"bit-labs.cn/owl/provider/conf"
 	_ "embed"
+
+	"bit-labs.cn/owl/provider/conf"
 
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
@@ -22,6 +23,9 @@ func (r *RedisServiceProvider) Register() {
 		owl.PanicIf(err)
 
 		return InitRedis(&opt)
+	})
+	r.app.Register(func(client redis.UniversalClient) LockerFactory {
+		return NewRedisLockerFactory(client)
 	})
 }
 
