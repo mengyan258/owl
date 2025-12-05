@@ -158,31 +158,23 @@ func (i *Application) GetBootstrapPath() string {
 }
 
 func (i *Application) GetConfigPath() string {
-
-	var path = "conf"
-	confDir := filepath.Join(i.basePath, path)
-	// 如果 confDir 存在
-	if _, err := os.Stat(confDir); os.IsNotExist(err) {
-		confDir = filepath.Join(i.runDir, path)
-	}
-
-	return confDir
+	return i.inferDir("conf")
 }
 
 func (i *Application) GetLangPath() string {
-	return i.basePath + "./lang"
+	return i.inferDir("lang")
 }
 
 func (i *Application) GetPublicPath() string {
-	return i.basePath + "./public"
+	return i.inferDir("public")
 }
 
 func (i *Application) GetResourcePath() string {
-	return i.basePath + "./resource"
+	return i.inferDir("resource")
 }
 
 func (i *Application) GetStoragePath() string {
-	return i.basePath + "./storage"
+	return i.inferDir("storage")
 }
 
 func (i *Application) Environment(s ...string) (string, bool) {
@@ -406,4 +398,18 @@ func (i *Application) registerBaseBindings() {
 
 	err = i.Provide(router.NewMenuRepository)
 	PanicIf(err)
+}
+
+// inferDir 推断目录路径
+func (i *Application) inferDir(path string) string {
+
+	// 先尝试使用 basePath 拼接路径
+	dir := filepath.Join(i.basePath, path)
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		// 如果 basePath 拼接路径不存在，则尝试使用 runDir 拼接路径
+		dir = filepath.Join(i.runDir, path)
+	}
+
+	return dir
 }
