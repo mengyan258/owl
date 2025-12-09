@@ -1,11 +1,12 @@
 package storage
 
 import (
+	_ "embed"
+
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/provider/conf"
 	"bit-labs.cn/owl/provider/storage/impl"
-	_ "embed"
 )
 
 var _ foundation.ServiceProvider = (*StorageServiceProvider)(nil)

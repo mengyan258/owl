@@ -2,8 +2,9 @@
 package structs
 
 import (
-	strutil "bit-labs.cn/owl/utils"
 	"fmt"
+
+	strutil "bit-labs.cn/owl/utils"
 
 	"reflect"
 )
@@ -603,7 +604,8 @@ func (s *Struct) nested(val reflect.Value, style KeyStyle) interface{} {
 }
 
 // GetStructFields 递归获取结构体所有字段，返回下划线的字段列表
-// @fields []string // 结构体的所有字段列表，除开 BaseModel
+//
+//	@fields	[]string // 结构体的所有字段列表，除开 BaseModel
 func GetStructFields(s any) []string {
 	// 初始化一个空的字符串数组
 	var fields []string

@@ -1,10 +1,11 @@
 package rabbitmq
 
 import (
-	"bit-labs.cn/owl/contract/log"
 	"context"
 	"crypto/tls"
 	"fmt"
+
+	"bit-labs.cn/owl/contract/log"
 
 	"sync"
 	"time"

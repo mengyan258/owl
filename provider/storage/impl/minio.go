@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"bit-labs.cn/owl/provider/storage"
 	"context"
 	"fmt"
 	"io"
@@ -9,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"bit-labs.cn/owl/provider/storage"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"

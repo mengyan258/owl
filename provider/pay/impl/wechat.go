@@ -1,7 +1,6 @@
 package impl
 
 import (
-	payc "bit-labs.cn/owl/contract/pay"
 	"context"
 	"crypto"
 	"crypto/rand"
@@ -17,6 +16,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	payc "bit-labs.cn/owl/contract/pay"
 )
 
 type Wechat struct {

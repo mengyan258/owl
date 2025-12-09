@@ -1,8 +1,9 @@
 package appconf
 
 import (
-	"bit-labs.cn/owl/contract/foundation"
 	_ "embed"
+
+	"bit-labs.cn/owl/contract/foundation"
 )
 
 type AppConfigServiceProvider struct {

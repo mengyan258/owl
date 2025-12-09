@@ -1,10 +1,11 @@
 package log
 
 import (
+	_ "embed"
+
 	"bit-labs.cn/owl/contract/foundation"
 	logContract "bit-labs.cn/owl/contract/log"
 	"bit-labs.cn/owl/provider/conf"
-	_ "embed"
 	"go.uber.org/zap/zapcore"
 )
 

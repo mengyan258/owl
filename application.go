@@ -1,7 +1,6 @@
 package owl
 
 import (
-	"bit-labs.cn/owl/provider/appconf"
 	"context"
 	"fmt"
 	"go/types"
@@ -9,6 +8,8 @@ import (
 	"path/filepath"
 	"reflect"
 	"unsafe"
+
+	"bit-labs.cn/owl/provider/appconf"
 
 	"bit-labs.cn/owl/contract/foundation"
 	logContract "bit-labs.cn/owl/contract/log"

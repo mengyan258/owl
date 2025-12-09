@@ -4,11 +4,6 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-	"github.com/dlclark/regexp2"
-	jsoniter "github.com/json-iterator/go"
-	"github.com/mitchellh/mapstructure"
-	"github.com/shopspring/decimal"
-	"github.com/spf13/cast"
 	"math/big"
 	"math/rand"
 	"regexp"
@@ -16,6 +11,12 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/dlclark/regexp2"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/mitchellh/mapstructure"
+	"github.com/shopspring/decimal"
+	"github.com/spf13/cast"
 )
 
 // TODO -12 不能转到 12

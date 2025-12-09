@@ -1,9 +1,10 @@
 package rabbitmq
 
 import (
+	_ "embed"
+
 	"bit-labs.cn/owl/contract/log"
 	"bit-labs.cn/owl/provider/conf"
-	_ "embed"
 
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"

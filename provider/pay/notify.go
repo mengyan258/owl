@@ -1,9 +1,10 @@
 package pay
 
 import (
+	"io/ioutil"
+
 	"github.com/asaskevich/EventBus"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
 )
 
 func RegisterPayNotify(engine *gin.Engine, manager *PaymentManager) {

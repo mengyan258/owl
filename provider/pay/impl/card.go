@@ -1,8 +1,9 @@
 package impl
 
 import (
-	payc "bit-labs.cn/owl/contract/pay"
 	"context"
+
+	payc "bit-labs.cn/owl/contract/pay"
 )
 
 type Card struct {

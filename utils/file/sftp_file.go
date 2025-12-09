@@ -3,7 +3,6 @@ package file
 import (
 	"bytes"
 	"fmt"
-	"github.com/pkg/sftp"
 	"io"
 	"net/http"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/pkg/sftp"
 )
 
 // NormalizedRemotePath 归一化远程路径处理

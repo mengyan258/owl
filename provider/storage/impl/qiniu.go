@@ -1,7 +1,6 @@
 package impl
 
 import (
-	storage2 "bit-labs.cn/owl/provider/storage"
 	"bytes"
 	"context"
 	"crypto/md5"
@@ -12,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	storage2 "bit-labs.cn/owl/provider/storage"
 
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"

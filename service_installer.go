@@ -4,14 +4,15 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"github.com/kardianos/service"
-	"github.com/spf13/cobra"
-	"gopkg.in/guoliang1994/go-i18n.v2"
-	"gopkg.in/guoliang1994/go-i18n.v2/driver"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"runtime"
+
+	"github.com/kardianos/service"
+	"github.com/spf13/cobra"
+	"gopkg.in/guoliang1994/go-i18n.v2"
+	"gopkg.in/guoliang1994/go-i18n.v2/driver"
 )
 
 type program struct {

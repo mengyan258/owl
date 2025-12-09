@@ -11,10 +11,11 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/denisbrodbeck/machineid"
-	jsoniter "github.com/json-iterator/go"
 	"os"
 	"time"
+
+	"github.com/denisbrodbeck/machineid"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type LicensePayload struct {

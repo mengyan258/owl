@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"bit-labs.cn/owl/provider/storage"
 	"bytes"
 	"context"
 	"crypto/md5"
@@ -11,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"bit-labs.cn/owl/provider/storage"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"

@@ -1,7 +1,6 @@
 package impl
 
 import (
-	storage2 "bit-labs.cn/owl/provider/storage"
 	"bytes"
 	"context"
 	"crypto/md5"
@@ -13,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	storage2 "bit-labs.cn/owl/provider/storage"
 
 	"github.com/tencentyun/cos-go-sdk-v5"
 )

@@ -1,14 +1,15 @@
 package log
 
 import (
-	"bit-labs.cn/owl/contract/log"
 	"context"
+	"os"
+	"sync"
+
+	"bit-labs.cn/owl/contract/log"
 	"github.com/golang-module/carbon"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"os"
-	"sync"
 )
 
 /*

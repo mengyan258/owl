@@ -1,13 +1,14 @@
 package pay
 
 import (
+	_ "embed"
+	"time"
+
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/provider/conf"
 	"bit-labs.cn/owl/provider/pay/impl"
-	_ "embed"
 	"gorm.io/gorm"
-	"time"
 )
 
 var _ foundation.ServiceProvider = (*PayServiceProvider)(nil)

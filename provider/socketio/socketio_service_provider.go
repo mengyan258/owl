@@ -1,12 +1,13 @@
 package socketio
 
 import (
+	"net/http"
+
 	"bit-labs.cn/owl/contract/foundation"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
 	"github.com/googollee/go-socket.io/engineio/transport"
 	"github.com/googollee/go-socket.io/engineio/transport/websocket"
-	"net/http"
 )
 
 type SocketIOServiceProvider struct {

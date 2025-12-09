@@ -1,14 +1,15 @@
 package router
 
 import (
+	_ "embed"
+	"net/http"
+	"time"
+
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/provider/conf"
 	"bit-labs.cn/owl/provider/router/middleware"
-	_ "embed"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"time"
 )
 
 var _ foundation.ServiceProvider = (*RouterServiceProvider)(nil)

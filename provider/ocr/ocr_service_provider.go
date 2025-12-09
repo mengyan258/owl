@@ -1,9 +1,10 @@
 package ocr
 
 import (
+	_ "embed"
+
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/provider/conf"
-	_ "embed"
 )
 
 var _ foundation.ServiceProvider = (*OcrServiceProvider)(nil)

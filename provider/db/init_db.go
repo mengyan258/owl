@@ -1,9 +1,10 @@
 package db
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
-	"time"
 )
 
 type Options struct {

@@ -1,20 +1,21 @@
 package conf
 
 import (
+	"bytes"
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/contract/log"
 	"bit-labs.cn/owl/utils"
-	"bytes"
-	"fmt"
 	"github.com/asaskevich/EventBus"
 	"github.com/fsnotify/fsnotify"
 	"github.com/joho/godotenv"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/spf13/viper"
-	"io/fs"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 type Configure struct {

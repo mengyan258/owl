@@ -1,13 +1,14 @@
 package db
 
 import (
+	_ "embed"
+	"path/filepath"
+
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/contract/log"
 	"bit-labs.cn/owl/provider/conf"
-	_ "embed"
 	"gorm.io/gorm"
-	"path/filepath"
 )
 
 var _ foundation.ServiceProvider = (*DBServiceProvider)(nil)
