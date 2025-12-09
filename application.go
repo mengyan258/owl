@@ -28,7 +28,7 @@ type SubApp interface {
 	RegisterRouters()
 	ServiceProviders() []foundation.ServiceProvider
 	Binds() []any
-	Menu() *router.Menu
+	Menu() []*router.Menu
 	Commands() []*cobra.Command
 	// Bootstrap 应用启动前执行，如初始化配置,初始化数据，初始化表结构等
 	Bootstrap()
@@ -370,7 +370,7 @@ func (i *Application) newSubApp(apps ...SubApp) {
 
 	for _, app := range i.subApps {
 		app.RegisterRouters()
-		i.menus = append(i.menus, app.Menu())
+		i.menus = append(i.menus, app.Menu()...)
 		i.rootCmd.AddCommand(app.Commands()...)
 		app.Bootstrap()
 	}
