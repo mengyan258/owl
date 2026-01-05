@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"gorm.io/gorm"
 )
 
@@ -10,7 +11,8 @@ type ChangeStatus struct {
 }
 
 type BaseRepository[T any] struct {
-	db *gorm.DB
+	db  *gorm.DB
+	ctx context.Context
 }
 
 func NewBaseRepository[T any](db *gorm.DB) BaseRepository[T] {
@@ -30,6 +32,11 @@ func (i *BaseRepository[T]) Delete(ids ...any) error {
 	return i.db.Model(new(T)).Where("id in ?", ids).Delete(nil).Error
 }
 
+func (i *BaseRepository[T]) WithContext(ctx context.Context) *BaseRepository[T] {
+	i.ctx = ctx
+	return i
+}
+
 // Detail 获取详情
 func (i *BaseRepository[T]) Detail(id any) (*T, error) {
 	model := new(T)
@@ -40,7 +47,7 @@ func (i *BaseRepository[T]) Detail(id any) (*T, error) {
 // Retrieve 获取详情
 func (i *BaseRepository[T]) Retrieve(page, pageSize int, fn func(db *gorm.DB)) (count int64, list []T, err error) {
 	var model T
-	newDB := i.db.Model(model)
+	newDB := i.db.WithContext(i.ctx).Model(model)
 	if fn != nil {
 		fn(newDB)
 	}

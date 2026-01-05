@@ -25,11 +25,13 @@ func (i *DBServiceProvider) Register() {
 		err := c.GetConfig("database", &opt)
 		owl.PanicIf(err)
 
+		l.Debug("连接数据库", "配置信息", opt.Host, opt.Port)
+
 		if opt.Driver == Sqlite {
 			opt.Host = filepath.Join(i.app.GetConfigPath(), opt.Host)
 			l.Debug("use sqlite, path:", opt.Host)
 		}
-		return InitDB(&opt)
+		return InitDB(&opt, l)
 	})
 }
 

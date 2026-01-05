@@ -3,7 +3,10 @@ package db
 import (
 	"time"
 
+	"bit-labs.cn/owl/contract/log"
+
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 )
 
@@ -30,7 +33,7 @@ func (r CustomReplacer) Replace(name string) string {
 	return r.f(name)
 }
 
-func InitDB(opt *Options, plugins ...gorm.Plugin) *gorm.DB {
+func InitDB(opt *Options, log log.Logger, plugins ...gorm.Plugin) *gorm.DB {
 
 	var dbGetter Connector
 	switch opt.Driver {
@@ -53,6 +56,7 @@ func InitDB(opt *Options, plugins ...gorm.Plugin) *gorm.DB {
 		},
 
 		SkipDefaultTransaction: true,
+		Logger:                 NewOwlGormLogger(log).LogMode(logger.Info),
 	}
 
 	var openDb *gorm.DB
