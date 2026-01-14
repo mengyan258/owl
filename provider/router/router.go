@@ -71,8 +71,9 @@ type RouterInfoBuilder struct {
 	handler  Handler // 定义 handler，可以获取 handler 的 moduleName
 	lock     sync.RWMutex
 
-	currentRouter *RouterInfo
-	deps          []Dep
+	currentRouter            *RouterInfo
+	currentRouterMiddlewares []gin.HandlerFunc
+	deps                     []Dep
 }
 
 type MenuOption struct {
@@ -152,7 +153,9 @@ func (i *RouterInfoBuilder) Build() {
 		})
 	}
 	// 添加路由
-	i.router.Handle(i.currentRouter.Method, i.currentRouter.PathWithoutGroup, i.currentRouter.handle)
+	handlers := append(i.currentRouterMiddlewares, i.currentRouter.handle)
+	i.router.Handle(i.currentRouter.Method, i.currentRouter.PathWithoutGroup, handlers...)
+	i.currentRouterMiddlewares = nil
 
 	// 保存路由到全局注册表
 	RegisterRoute(i.currentRouter)
@@ -184,6 +187,11 @@ func (i *RouterInfoBuilder) Delete(path string, accessLevel AccessLevel, handle 
 }
 func (i *RouterInfoBuilder) Get(path string, accessLevel AccessLevel, handle gin.HandlerFunc) *RouterInfoBuilder {
 	return i.add(http.MethodGet, path, accessLevel, handle)
+}
+
+func (i *RouterInfoBuilder) Use(handle ...gin.HandlerFunc) *RouterInfoBuilder {
+	i.currentRouterMiddlewares = append(i.currentRouterMiddlewares, handle...)
+	return i
 }
 
 func (i *RouterInfoBuilder) GetMenu() *Menu {

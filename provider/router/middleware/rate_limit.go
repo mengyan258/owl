@@ -9,11 +9,11 @@ import (
 	"github.com/ulule/limiter/v3/drivers/store/memory"
 )
 
-func RateLimiter() gin.HandlerFunc {
+func RateLimiter(period time.Duration, limit int64) gin.HandlerFunc {
 	// 创建速率配置
 	rate := limiter.Rate{
-		Period: time.Second,
-		Limit:  5,
+		Period: period,
+		Limit:  limit,
 	}
 	// 将数据存入内存
 	store := memory.NewStore()
