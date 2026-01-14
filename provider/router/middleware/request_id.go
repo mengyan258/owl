@@ -1,11 +1,14 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+const requestIDContextKey = "request_id"
 
 // RequestID 请求ID中间件
 // 为每个请求生成唯一的请求ID，用于日志追踪和调试
@@ -23,7 +26,8 @@ func RequestID() gin.HandlerFunc {
 		c.Header("X-Request-ID", requestID)
 
 		// 将请求ID存储到上下文中，供后续处理使用
-		c.Set("request_id", requestID)
+		c.Set(requestIDContextKey, requestID)
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), requestIDContextKey, requestID))
 
 		// 继续处理请求
 		c.Next()

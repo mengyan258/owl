@@ -39,6 +39,11 @@ func (i *OwlGormLogger) Info(ctx context.Context, msg string, data ...interface{
 	if i.level < logger.Info || i.log == nil {
 		return
 	}
+	requestID := getRequestID(ctx)
+	if requestID != "" {
+		i.log.WithContext(ctx).Info("GORM", "requestId", requestID, "msg", fmt.Sprintf(msg, data...))
+		return
+	}
 	i.log.WithContext(ctx).Info(fmt.Sprintf(msg, data...))
 }
 
@@ -46,11 +51,21 @@ func (i *OwlGormLogger) Warn(ctx context.Context, msg string, data ...interface{
 	if i.level < logger.Warn || i.log == nil {
 		return
 	}
+	requestID := getRequestID(ctx)
+	if requestID != "" {
+		i.log.WithContext(ctx).Warning("GORM", "requestId", requestID, "msg", fmt.Sprintf(msg, data...))
+		return
+	}
 	i.log.WithContext(ctx).Warning(fmt.Sprintf(msg, data...))
 }
 
 func (i *OwlGormLogger) Error(ctx context.Context, msg string, data ...interface{}) {
 	if i.level < logger.Error || i.log == nil {
+		return
+	}
+	requestID := getRequestID(ctx)
+	if requestID != "" {
+		i.log.WithContext(ctx).Error("GORM", "requestId", requestID, "msg", fmt.Sprintf(msg, data...))
 		return
 	}
 	i.log.WithContext(ctx).Error(fmt.Sprintf(msg, data...))
@@ -63,25 +78,38 @@ func (i *OwlGormLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 
 	elapsed := time.Since(begin)
 	sql, rows := fc()
+	requestID := getRequestID(ctx)
 
 	if err != nil {
 		if i.ignoreRecordNotFoundErr && errors.Is(err, gorm.ErrRecordNotFound) {
 			return
 		}
 		if i.level >= logger.Error {
-			i.log.WithContext(ctx).Error("执行 SQL 失败", "耗时", elapsed, "影响行数", rows, "sql:", sql, "错误:", err)
+			i.log.WithContext(ctx).Error("执行 SQL 失败", "requestId", requestID, "耗时", elapsed, "影响行数", rows, "sql:", sql, "错误:", err)
 		}
 		return
 	}
 
 	if i.slowThreshold > 0 && elapsed > i.slowThreshold {
 		if i.level >= logger.Warn {
-			i.log.WithContext(ctx).Warning("慢查询", "耗时", elapsed, "影响行数", rows, "sql:", sql)
+			i.log.WithContext(ctx).Warning("慢查询", "requestId", requestID, "耗时", elapsed, "影响行数", rows, "sql:", sql)
 		}
 		return
 	}
 
 	if i.level >= logger.Info {
-		i.log.WithContext(ctx).Info("执行 SQL", "耗时", elapsed, "影响行数", rows, "sql:", sql)
+		i.log.WithContext(ctx).Info("执行 SQL", "requestId", requestID, "耗时", elapsed, "影响行数", rows, "sql:", sql)
 	}
+}
+
+func getRequestID(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
+	v := ctx.Value("request_id")
+	s, ok := v.(string)
+	if !ok {
+		return ""
+	}
+	return s
 }

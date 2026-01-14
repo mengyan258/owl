@@ -19,14 +19,10 @@ server:
 
 # 中间件配置
 middleware:
-  # 启用恢复中间件
-  recovery: true
   # 启用日志中间件
   logger: true
   # 启用 CORS 中间件
   cors: true
-  # 启用请求 ID 中间件
-  request-id: true
   # 启用限流中间件
   rate-limit: false
 

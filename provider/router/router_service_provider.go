@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"bit-labs.cn/owl/contract/foundation"
+	logContract "bit-labs.cn/owl/contract/log"
 	"bit-labs.cn/owl/provider/conf"
 	"bit-labs.cn/owl/provider/router/middleware"
 	"github.com/gin-contrib/cors"
@@ -117,14 +118,14 @@ type MetricsConfig struct {
 }
 
 func (i *RouterServiceProvider) Register() {
-	i.app.Register(func(c *conf.Configure) *gin.Engine {
+	i.app.Register(func(c *conf.Configure, l logContract.Logger) *gin.Engine {
 		var opt RouterOptions
 		err := c.GetConfig("router", &opt)
 		if err != nil {
 			panic(err)
 		}
 
-		return InitRouter(&opt)
+		return InitRouter(&opt, l)
 	})
 }
 
@@ -142,20 +143,15 @@ func (i *RouterServiceProvider) GenerateConf() map[string]string {
 }
 
 // InitRouter 初始化路由引擎
-func InitRouter(opt *RouterOptions) *gin.Engine {
+func InitRouter(opt *RouterOptions, l logContract.Logger) *gin.Engine {
 	// 设置 Gin 模式
 	gin.SetMode(opt.Mode)
 
 	// 创建 Gin 引擎
-	var engine *gin.Engine
-	if opt.Middleware.Recovery || opt.Middleware.Logger {
-		engine = gin.Default()
-	} else {
-		engine = gin.New()
-	}
+	engine := gin.New()
 
 	// 配置中间件
-	setupMiddleware(engine, opt)
+	setupMiddleware(engine, opt, l)
 
 	// 配置静态文件
 	if opt.Static.Enabled {
@@ -196,7 +192,19 @@ func InitRouter(opt *RouterOptions) *gin.Engine {
 }
 
 // setupMiddleware 设置中间件
-func setupMiddleware(engine *gin.Engine, opt *RouterOptions) {
+
+func setupMiddleware(engine *gin.Engine, opt *RouterOptions, l logContract.Logger) {
+	engine.Use(middleware.RequestID())
+	engine.Use(middleware.Recovery(l))
+
+	if opt.Middleware.Logger {
+		engine.Use(middleware.AccessLog(l, middleware.AccessLogConfig{
+			Enabled:   opt.Log.AccessLog,
+			Format:    opt.Log.AccessLogFormat,
+			SkipPaths: opt.Log.SkipPaths,
+		}))
+	}
+
 	// CORS 中间件
 	if opt.Middleware.Cors {
 		config := cors.Config{
@@ -208,15 +216,9 @@ func setupMiddleware(engine *gin.Engine, opt *RouterOptions) {
 			MaxAge:           time.Duration(opt.Cors.MaxAge) * time.Second,
 		}
 		if len(opt.Cors.AllowedOrigins) == 0 {
-			// 如果没有配置，默认允许所有
 			config.AllowAllOrigins = true
 		}
 		engine.Use(cors.New(config))
-	}
-
-	// 请求 ID 中间件
-	if opt.Middleware.RequestID {
-		engine.Use(middleware.RequestID())
 	}
 
 	// 安全头中间件
