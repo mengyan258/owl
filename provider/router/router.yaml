@@ -16,6 +16,13 @@ server:
   idle-timeout: 60
   # 最大请求头大小（字节）
   max-header-bytes: 1048576
+  tls:
+    enabled: false
+    cert-file: ""
+    key-file: ""
+    client-ca-file: ""
+    require-client-cert: false
+    min-version: "1.2"
 
 # 中间件配置
 middleware:

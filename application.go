@@ -18,7 +18,6 @@ import (
 	"bit-labs.cn/owl/provider/log"
 	"bit-labs.cn/owl/provider/router"
 	"bit-labs.cn/owl/utils"
-	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"go.uber.org/dig"
 )
@@ -302,19 +301,8 @@ func PanicIf(err error) {
 	}
 }
 func (i *Application) Run() {
-	err := i.Invoke(func(router *gin.Engine, configure *conf.Configure, l logContract.Logger) {
-
-		i.l = l
-		var AppConfig struct {
-			Host string `json:"host"`
-			Port int    `json:"port"`
-		}
-		err := configure.GetConfig("router.server", &AppConfig)
-		if err != nil {
-			return
-		}
-
-		_ = router.Run(fmt.Sprintf("%s:%d", AppConfig.Host, AppConfig.Port))
+	err := i.Invoke(func(e *router.RouterServiceProvider) {
+		e.Run()
 	})
 	PanicIf(err)
 }

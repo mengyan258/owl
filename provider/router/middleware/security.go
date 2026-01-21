@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -44,13 +45,22 @@ func Security(config SecurityConfig) gin.HandlerFunc {
 	}
 }
 
-// DefaultSecurity 默认安全配置的中间件
-func DefaultSecurity() gin.HandlerFunc {
-	return Security(SecurityConfig{
-		ContentTypeNoSniff: true,
-		XssProtection:      true,
-		FrameDeny:          true,
-		Hsts:               false,    // 默认不启用HSTS，因为需要HTTPS环境
-		HstsMaxAge:         31536000, // 1年
-	})
+// HttpsRedirect 重定向 HTTP 请求到 HTTPS
+func HttpsRedirect() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 如果已经是 HTTPS 则跳过
+		if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
+			c.Next()
+			return
+		}
+
+		host := c.Request.Host
+		target := "https://" + host + c.Request.URL.Path
+		if len(c.Request.URL.RawQuery) > 0 {
+			target += "?" + c.Request.URL.RawQuery
+		}
+
+		c.Redirect(http.StatusMovedPermanently, target)
+		c.Abort()
+	}
 }

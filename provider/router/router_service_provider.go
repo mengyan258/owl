@@ -1,8 +1,14 @@
 package router
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	_ "embed"
+	"errors"
+	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"bit-labs.cn/owl/contract/foundation"
@@ -16,116 +22,24 @@ import (
 var _ foundation.ServiceProvider = (*RouterServiceProvider)(nil)
 
 type RouterServiceProvider struct {
-	app foundation.Application
-}
-
-// RouterOptions 路由配置选项
-type RouterOptions struct {
-	Mode       string           `json:"mode"`
-	Server     ServerConfig     `json:"server"`
-	Middleware MiddlewareConfig `json:"middleware"`
-	Cors       CorsConfig       `json:"cors"`
-	RateLimit  RateLimitConfig  `json:"rate-limit"`
-	Static     StaticConfig     `json:"static"`
-	Template   TemplateConfig   `json:"template"`
-	Security   SecurityConfig   `json:"security"`
-	Log        LogConfig        `json:"log"`
-	Health     HealthConfig     `json:"health"`
-	Metrics    MetricsConfig    `json:"metrics"`
-}
-
-// ServerConfig 服务器配置
-type ServerConfig struct {
-	Host           string `json:"host"`
-	Port           int    `json:"port"`
-	ReadTimeout    int    `json:"read-timeout"`
-	WriteTimeout   int    `json:"write-timeout"`
-	IdleTimeout    int    `json:"idle-timeout"`
-	MaxHeaderBytes int    `json:"max-header-bytes"`
-}
-
-// MiddlewareConfig 中间件配置
-type MiddlewareConfig struct {
-	Recovery  bool `json:"recovery"`
-	Logger    bool `json:"logger"`
-	Cors      bool `json:"cors"`
-	RequestID bool `json:"request-id"`
-	RateLimit bool `json:"rate-limit"`
-}
-
-// CorsConfig CORS 配置
-type CorsConfig struct {
-	AllowedOrigins   []string `json:"allowed-origins"`
-	AllowedMethods   []string `json:"allowed-methods"`
-	AllowedHeaders   []string `json:"allowed-headers"`
-	ExposedHeaders   []string `json:"exposed-headers"`
-	AllowCredentials bool     `json:"allow-credentials"`
-	MaxAge           int      `json:"max-age"`
-}
-
-// RateLimitConfig 限流配置
-type RateLimitConfig struct {
-	RequestsPerSecond int    `json:"requests-per-second"`
-	Burst             int    `json:"burst"`
-	KeyGenerator      string `json:"key-generator"`
-}
-
-// StaticConfig 静态文件配置
-type StaticConfig struct {
-	Enabled       bool   `json:"enabled"`
-	Path          string `json:"path"`
-	Root          string `json:"root"`
-	ListDirectory bool   `json:"list-directory"`
-}
-
-// TemplateConfig 模板配置
-type TemplateConfig struct {
-	Enabled bool   `json:"enabled"`
-	Pattern string `json:"pattern"`
-	Delims  struct {
-		Left  string `json:"left"`
-		Right string `json:"right"`
-	} `json:"delims"`
-}
-
-// SecurityConfig 安全配置
-type SecurityConfig struct {
-	HttpsRedirect      bool `json:"https-redirect"`
-	Hsts               bool `json:"hsts"`
-	HstsMaxAge         int  `json:"hsts-max-age"`
-	ContentTypeNoSniff bool `json:"content-type-nosniff"`
-	XssProtection      bool `json:"xss-protection"`
-	FrameDeny          bool `json:"frame-deny"`
-}
-
-// LogConfig 日志配置
-type LogConfig struct {
-	AccessLog       bool     `json:"access-log"`
-	AccessLogFormat string   `json:"access-log-format"`
-	SkipPaths       []string `json:"skip-paths"`
-}
-
-// HealthConfig 健康检查配置
-type HealthConfig struct {
-	Enabled bool   `json:"enabled"`
-	Path    string `json:"path"`
-}
-
-// MetricsConfig 指标配置
-type MetricsConfig struct {
-	Enabled bool   `json:"enabled"`
-	Path    string `json:"path"`
+	app       foundation.Application
+	opt       RouterOptions
+	engine    *gin.Engine
+	logger    logContract.Logger
+	configure *conf.Configure
+	serverCfg ServerConfig
 }
 
 func (i *RouterServiceProvider) Register() {
-	i.app.Register(func(c *conf.Configure, l logContract.Logger) *gin.Engine {
-		var opt RouterOptions
-		err := c.GetConfig("router", &opt)
+	i.app.Register(func(c *conf.Configure, l logContract.Logger) (*RouterServiceProvider, *gin.Engine) {
+		i.configure = c
+		i.logger = l
+		err := c.GetConfig("router", &i.opt)
 		if err != nil {
 			panic(err)
 		}
-
-		return InitRouter(&opt, l)
+		i.BuildEngine()
+		return i, i.engine
 	})
 }
 
@@ -142,92 +56,208 @@ func (i *RouterServiceProvider) GenerateConf() map[string]string {
 	}
 }
 
-// InitRouter 初始化路由引擎
-func InitRouter(opt *RouterOptions, l logContract.Logger) *gin.Engine {
+func (i *RouterServiceProvider) Run() {
+
+	err := i.configure.GetConfig("router.server", &i.serverCfg)
+	if err != nil {
+		panic("读取配置失败，请检查 router.yaml 配置文件")
+	}
+
+	if i.engine == nil {
+		panic("engine is nil")
+	}
+
+	addr := fmt.Sprintf("%s:%d", i.serverCfg.Host, i.serverCfg.Port)
+	if i.serverCfg.TLS.Enabled {
+		i.serveTLS(addr)
+		return
+	}
+
+	_ = i.engine.Run(addr)
+}
+
+func (i *RouterServiceProvider) serveTLS(addr string) {
+	if i.serverCfg.TLS.CertFile == "" || i.serverCfg.TLS.KeyFile == "" {
+		panic(fmt.Errorf("router.server.tls.cert-file 与 router.server.tls.key-file 不能为空"))
+	}
+
+	tlsCfg, err := i.buildTLSConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	srv := &http.Server{
+		Addr:           addr,
+		Handler:        i.engine,
+		ReadTimeout:    time.Duration(i.serverCfg.ReadTimeout) * time.Second,
+		WriteTimeout:   time.Duration(i.serverCfg.WriteTimeout) * time.Second,
+		IdleTimeout:    time.Duration(i.serverCfg.IdleTimeout) * time.Second,
+		MaxHeaderBytes: i.serverCfg.MaxHeaderBytes,
+		TLSConfig:      tlsCfg,
+	}
+
+	if err := srv.ListenAndServeTLS(i.serverCfg.TLS.CertFile, i.serverCfg.TLS.KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		panic(err)
+	}
+}
+
+func (i *RouterServiceProvider) buildTLSConfig() (*tls.Config, error) {
+	minVersion, err := i.parseTLSMinVersion(i.serverCfg.TLS.MinVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	tlsCfg := &tls.Config{MinVersion: minVersion}
+	if i.serverCfg.TLS.RequireClientCert {
+		if i.serverCfg.TLS.ClientCAFile == "" {
+			return nil, fmt.Errorf("router.server.tls.client-ca-file 不能为空")
+		}
+		pool, err := i.loadCertPoolFromPEM(i.serverCfg.TLS.ClientCAFile)
+		if err != nil {
+			return nil, err
+		}
+		tlsCfg.ClientCAs = pool
+		tlsCfg.ClientAuth = tls.RequireAndVerifyClientCert
+	}
+
+	return tlsCfg, nil
+}
+
+func (i *RouterServiceProvider) loadCertPoolFromPEM(path string) (*x509.CertPool, error) {
+	pemData, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	pool := x509.NewCertPool()
+	if ok := pool.AppendCertsFromPEM(pemData); !ok {
+		return nil, fmt.Errorf("router.server.tls.client-ca-file 证书解析失败")
+	}
+	return pool, nil
+}
+
+func (i *RouterServiceProvider) parseTLSMinVersion(v string) (uint16, error) {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return tls.VersionTLS12, nil
+	}
+	if strings.HasPrefix(v, "TLS") || strings.HasPrefix(v, "tls") {
+		v = strings.TrimSpace(v[3:])
+	}
+	switch v {
+	case "1.0", "1":
+		return tls.VersionTLS10, nil
+	case "1.1":
+		return tls.VersionTLS11, nil
+	case "1.2":
+		return tls.VersionTLS12, nil
+	case "1.3":
+		return tls.VersionTLS13, nil
+	default:
+		return 0, fmt.Errorf("router.server.tls.min-version 不合法: %s", v)
+	}
+}
+
+// BuildEngine 初始化路由引擎
+func (i *RouterServiceProvider) BuildEngine() *gin.Engine {
 	// 设置 Gin 模式
-	gin.SetMode(opt.Mode)
+	gin.SetMode(i.opt.Mode)
 
 	// 创建 Gin 引擎
-	engine := gin.New()
+	i.engine = gin.New()
 
-	// 配置中间件
-	setupMiddleware(engine, opt, l)
+	i.setupMiddleware()
+	i.setupStatic()
+	i.setupTemplate()
+	i.setupHealth()
+	i.setupMetrics()
 
-	// 配置静态文件
-	if opt.Static.Enabled {
-		if opt.Static.ListDirectory {
-			engine.StaticFS(opt.Static.Path, http.Dir(opt.Static.Root))
-		} else {
-			engine.Static(opt.Static.Path, opt.Static.Root)
-		}
-	}
-
-	// 配置模板
-	if opt.Template.Enabled {
-		engine.LoadHTMLGlob(opt.Template.Pattern)
-		if opt.Template.Delims.Left != "" && opt.Template.Delims.Right != "" {
-			engine.Delims(opt.Template.Delims.Left, opt.Template.Delims.Right)
-		}
-	}
-
-	// 配置健康检查
-	if opt.Health.Enabled {
-		engine.GET(opt.Health.Path, func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"status": "ok",
-			})
-		})
-	}
-
-	// 配置指标端点
-	if opt.Metrics.Enabled {
-		engine.GET(opt.Metrics.Path, func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"status": "ok",
-			})
-		})
-	}
-
-	return engine
+	return i.engine
 }
 
 // setupMiddleware 设置中间件
 
-func setupMiddleware(engine *gin.Engine, opt *RouterOptions, l logContract.Logger) {
-	engine.Use(middleware.RequestID())
-	engine.Use(middleware.Recovery(l))
+func (i *RouterServiceProvider) setupMiddleware() {
+	i.engine.Use(middleware.RequestID())
+	i.engine.Use(middleware.Recovery(i.logger))
 
-	if opt.Middleware.Logger {
-		engine.Use(middleware.AccessLog(l, middleware.AccessLogConfig{
-			Enabled:   opt.Log.AccessLog,
-			Format:    opt.Log.AccessLogFormat,
-			SkipPaths: opt.Log.SkipPaths,
+	if i.opt.Middleware.Logger {
+		i.engine.Use(middleware.AccessLog(i.logger, middleware.AccessLogConfig{
+			Enabled:   i.opt.Log.AccessLog,
+			Format:    i.opt.Log.AccessLogFormat,
+			SkipPaths: i.opt.Log.SkipPaths,
 		}))
 	}
 
+	if i.opt.Security.HttpsRedirect {
+		i.engine.Use(middleware.HttpsRedirect())
+	}
+
 	// CORS 中间件
-	if opt.Middleware.Cors {
+	if i.opt.Middleware.Cors {
 		config := cors.Config{
-			AllowOrigins:     opt.Cors.AllowedOrigins,
-			AllowMethods:     opt.Cors.AllowedMethods,
-			AllowHeaders:     opt.Cors.AllowedHeaders,
-			ExposeHeaders:    opt.Cors.ExposedHeaders,
-			AllowCredentials: opt.Cors.AllowCredentials,
-			MaxAge:           time.Duration(opt.Cors.MaxAge) * time.Second,
+			AllowOrigins:     i.opt.Cors.AllowedOrigins,
+			AllowMethods:     i.opt.Cors.AllowedMethods,
+			AllowHeaders:     i.opt.Cors.AllowedHeaders,
+			ExposeHeaders:    i.opt.Cors.ExposedHeaders,
+			AllowCredentials: i.opt.Cors.AllowCredentials,
+			MaxAge:           time.Duration(i.opt.Cors.MaxAge) * time.Second,
 		}
-		if len(opt.Cors.AllowedOrigins) == 0 {
+		if len(i.opt.Cors.AllowedOrigins) == 0 {
 			config.AllowAllOrigins = true
 		}
-		engine.Use(cors.New(config))
+		i.engine.Use(cors.New(config))
 	}
 
 	// 安全头中间件
 	securityConfig := middleware.SecurityConfig{
-		ContentTypeNoSniff: opt.Security.ContentTypeNoSniff,
-		XssProtection:      opt.Security.XssProtection,
-		FrameDeny:          opt.Security.FrameDeny,
-		Hsts:               opt.Security.Hsts,
-		HstsMaxAge:         opt.Security.HstsMaxAge,
+		ContentTypeNoSniff: i.opt.Security.ContentTypeNoSniff,
+		XssProtection:      i.opt.Security.XssProtection,
+		FrameDeny:          i.opt.Security.FrameDeny,
+		Hsts:               i.opt.Security.Hsts,
+		HstsMaxAge:         i.opt.Security.HstsMaxAge,
 	}
-	engine.Use(middleware.Security(securityConfig))
+	i.engine.Use(middleware.Security(securityConfig))
+}
+
+func (i *RouterServiceProvider) setupStatic() {
+	if !i.opt.Static.Enabled {
+		return
+	}
+	if i.opt.Static.ListDirectory {
+		i.engine.StaticFS(i.opt.Static.Path, http.Dir(i.opt.Static.Root))
+		return
+	}
+	i.engine.Static(i.opt.Static.Path, i.opt.Static.Root)
+}
+
+func (i *RouterServiceProvider) setupTemplate() {
+	if !i.opt.Template.Enabled {
+		return
+	}
+	i.engine.LoadHTMLGlob(i.opt.Template.Pattern)
+	if i.opt.Template.Delims.Left != "" && i.opt.Template.Delims.Right != "" {
+		i.engine.Delims(i.opt.Template.Delims.Left, i.opt.Template.Delims.Right)
+	}
+}
+
+func (i *RouterServiceProvider) setupHealth() {
+	if !i.opt.Health.Enabled {
+		return
+	}
+	i.engine.GET(i.opt.Health.Path, func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+		})
+	})
+}
+
+func (i *RouterServiceProvider) setupMetrics() {
+	if !i.opt.Metrics.Enabled {
+		return
+	}
+	i.engine.GET(i.opt.Metrics.Path, func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+		})
+	})
 }
