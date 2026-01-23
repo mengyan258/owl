@@ -10,6 +10,7 @@ import (
 	"unsafe"
 
 	"bit-labs.cn/owl/provider/appconf"
+	"bit-labs.cn/owl/provider/validator"
 
 	"bit-labs.cn/owl/contract/foundation"
 	logContract "bit-labs.cn/owl/contract/log"
@@ -315,6 +316,7 @@ func (i *Application) registerBaseServiceProviders() {
 		&event.EventServiceProvider{},
 		&router.RouterServiceProvider{},
 		&appconf.AppConfigServiceProvider{},
+		&validator.ValidatorServiceProvider{},
 	}
 
 	i.bootServiceProviders(baseProviders...)
