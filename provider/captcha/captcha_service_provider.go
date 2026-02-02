@@ -19,6 +19,10 @@ type CaptchaServiceProvider struct {
 	app foundation.Application
 }
 
+func (i *CaptchaServiceProvider) Description() string {
+	return "验证码生成与校验,支持 click slide rotate"
+}
+
 var _ foundation.ServiceProvider = (*CaptchaServiceProvider)(nil)
 
 // Register 注册验证码服务到容器
@@ -54,8 +58,7 @@ func (i *CaptchaServiceProvider) Boot() {
 //go:embed captcha.yaml
 var captchaYaml string
 
-// GenerateConf 生成验证码默认配置
-func (i *CaptchaServiceProvider) GenerateConf() map[string]string {
+func (i *CaptchaServiceProvider) Conf() map[string]string {
 	return map[string]string{
 		"captcha.yaml": captchaYaml,
 	}

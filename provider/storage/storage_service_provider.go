@@ -16,10 +16,8 @@ type StorageServiceProvider struct {
 	app foundation.Application
 }
 
-func NewStorageServiceProvider(app foundation.Application) *StorageServiceProvider {
-	return &StorageServiceProvider{
-		app: app,
-	}
+func (s *StorageServiceProvider) Description() string {
+	return "对象存储驱动管理"
 }
 
 // Register 注册服务
@@ -86,8 +84,7 @@ func (s *StorageServiceProvider) Boot() {
 //go:embed storage.yaml
 var storageYaml string
 
-// GenerateConf 生成配置文件
-func (s *StorageServiceProvider) GenerateConf() map[string]string {
+func (s *StorageServiceProvider) Conf() map[string]string {
 	return map[string]string{
 		"storage.yaml": storageYaml,
 	}

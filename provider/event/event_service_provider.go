@@ -12,6 +12,10 @@ type EventServiceProvider struct {
 	app foundation.Application
 }
 
+func (i *EventServiceProvider) Description() string {
+	return "应用事件总线与发布订阅"
+}
+
 func (i *EventServiceProvider) Register() {
 	i.app.Register(func() EventBus.Bus {
 		return EventBus.New()
@@ -27,6 +31,6 @@ func (i *EventServiceProvider) Boot() {
 	}
 }
 
-func (i *EventServiceProvider) GenerateConf() map[string]string {
+func (i *EventServiceProvider) Conf() map[string]string {
 	return nil
 }

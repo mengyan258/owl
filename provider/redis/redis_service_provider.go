@@ -16,6 +16,10 @@ type RedisServiceProvider struct {
 	app foundation.Application
 }
 
+func (r *RedisServiceProvider) Description() string {
+	return "Redis 客户端与分布式锁"
+}
+
 func (r *RedisServiceProvider) Register() {
 	r.app.Register(func(c *conf.Configure) redis.UniversalClient {
 		var opt Options
@@ -36,7 +40,7 @@ func (r *RedisServiceProvider) Boot() {
 //go:embed redis.yaml
 var redisYaml string
 
-func (r *RedisServiceProvider) GenerateConf() map[string]string {
+func (r *RedisServiceProvider) Conf() map[string]string {
 	return map[string]string{
 		"redis.yaml": redisYaml,
 	}

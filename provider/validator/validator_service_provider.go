@@ -14,6 +14,10 @@ type ValidatorServiceProvider struct {
 	app foundation.Application
 }
 
+func (i *ValidatorServiceProvider) Description() string {
+	return "结构体验证器"
+}
+
 func (i *ValidatorServiceProvider) Register() {
 	i.app.Register(func() *validator.Validate {
 		v := validator.New(validator.WithRequiredStructEnabled())
@@ -34,4 +38,6 @@ func (i *ValidatorServiceProvider) Register() {
 
 func (i *ValidatorServiceProvider) Boot() {}
 
-func (i *ValidatorServiceProvider) GenerateConf() map[string]string { return nil }
+func (i *ValidatorServiceProvider) Conf() map[string]string {
+	return nil
+}

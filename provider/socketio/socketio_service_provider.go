@@ -14,6 +14,10 @@ type SocketIOServiceProvider struct {
 	app foundation.Application
 }
 
+func (s SocketIOServiceProvider) Description() string {
+	return "Socket.IO 实时通信服务"
+}
+
 var _ foundation.ServiceProvider = (*SocketIOServiceProvider)(nil)
 
 func (s SocketIOServiceProvider) Register() {
@@ -36,6 +40,6 @@ func (s SocketIOServiceProvider) Boot() {
 
 }
 
-func (s SocketIOServiceProvider) GenerateConf() map[string]string {
+func (s SocketIOServiceProvider) Conf() map[string]string {
 	return nil
 }

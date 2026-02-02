@@ -14,6 +14,10 @@ type GuardProvider struct {
 	app foundation.Application
 }
 
+func (i *GuardProvider) Description() string {
+	return "Casbin 用户权限引擎"
+}
+
 func (i *GuardProvider) Register() {
 	i.app.Register(func(db *gorm.DB) casbin.IEnforcer {
 		adapter, err := gormadapter.NewAdapterByDB(db)
@@ -49,6 +53,6 @@ func (i *GuardProvider) Register() {
 func (i *GuardProvider) Boot() {
 }
 
-func (i *GuardProvider) GenerateConf() map[string]string {
+func (i *GuardProvider) Conf() map[string]string {
 	return nil
 }

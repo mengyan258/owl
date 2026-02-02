@@ -16,6 +16,10 @@ type RabbitMQServiceProvider struct {
 	app foundation.Application
 }
 
+func (r *RabbitMQServiceProvider) Description() string {
+	return "RabbitMQ 消息队列客户端与连接管理"
+}
+
 func (r *RabbitMQServiceProvider) Register() {
 	r.app.Register(func(c *conf.Configure, l log.Logger) *RabbitMQClient {
 		var opt Options
@@ -35,7 +39,7 @@ func (r *RabbitMQServiceProvider) Boot() {
 //go:embed rabbitmq.yaml
 var rabbitmqYaml string
 
-func (r *RabbitMQServiceProvider) GenerateConf() map[string]string {
+func (r *RabbitMQServiceProvider) Conf() map[string]string {
 	return map[string]string{
 		"rabbitmq.yaml": rabbitmqYaml,
 	}

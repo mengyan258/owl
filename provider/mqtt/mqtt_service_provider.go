@@ -15,10 +15,8 @@ type MQTTServiceProvider struct {
 	app foundation.Application
 }
 
-func NewMQTTServiceProvider(app foundation.Application) *MQTTServiceProvider {
-	return &MQTTServiceProvider{
-		app: app,
-	}
+func (m *MQTTServiceProvider) Description() string {
+	return "MQTT 客户端连接与发布订阅"
 }
 
 func (m *MQTTServiceProvider) Register() {
@@ -38,7 +36,7 @@ func (m *MQTTServiceProvider) Boot() {
 //go:embed mqtt.yaml
 var mqttYaml string
 
-func (m *MQTTServiceProvider) GenerateConf() map[string]string {
+func (m *MQTTServiceProvider) Conf() map[string]string {
 	return map[string]string{
 		"mqtt.yaml": mqttYaml,
 	}

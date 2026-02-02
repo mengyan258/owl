@@ -17,8 +17,8 @@ type PayServiceProvider struct {
 	app foundation.Application
 }
 
-func NewPayServiceProvider(app foundation.Application) *PayServiceProvider {
-	return &PayServiceProvider{app: app}
+func (p *PayServiceProvider) Description() string {
+	return "支付驱动管理与默认支付通道"
 }
 
 func (p *PayServiceProvider) Register() {
@@ -64,14 +64,6 @@ func (p *PayServiceProvider) Register() {
 	})
 }
 
-//go:embed pay.yaml
-var payYaml string
-
-func (p *PayServiceProvider) GenerateConf() map[string]string {
-	return map[string]string{
-		"pay.yaml": payYaml,
-	}
-}
 func (p *PayServiceProvider) Boot() {
 	_ = p.app.Invoke(func(c *conf.Configure, db *gorm.DB) {
 		var opt Options
@@ -83,4 +75,13 @@ func (p *PayServiceProvider) Boot() {
 			InitDBDedupStore(db, ttl)
 		}
 	})
+}
+
+//go:embed pay.yaml
+var payYaml string
+
+func (p *PayServiceProvider) Conf() map[string]string {
+	return map[string]string{
+		"pay.yaml": payYaml,
+	}
 }

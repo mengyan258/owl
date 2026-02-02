@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	_ "embed"
@@ -28,6 +29,11 @@ type RouterServiceProvider struct {
 	logger    logContract.Logger
 	configure *conf.Configure
 	serverCfg ServerConfig
+	srv       *http.Server
+}
+
+func (i *RouterServiceProvider) Description() string {
+	return "HTTP 路由与中间件"
 }
 
 func (i *RouterServiceProvider) Register() {
@@ -47,15 +53,6 @@ func (i *RouterServiceProvider) Boot() {
 	// 路由服务启动时的初始化逻辑
 }
 
-//go:embed router.yaml
-var routerYaml string
-
-func (i *RouterServiceProvider) GenerateConf() map[string]string {
-	return map[string]string{
-		"router.yaml": routerYaml,
-	}
-}
-
 func (i *RouterServiceProvider) Run() {
 
 	err := i.configure.GetConfig("router.server", &i.serverCfg)
@@ -73,7 +70,18 @@ func (i *RouterServiceProvider) Run() {
 		return
 	}
 
-	_ = i.engine.Run(addr)
+	i.srv = &http.Server{
+		Addr:           addr,
+		Handler:        i.engine,
+		ReadTimeout:    time.Duration(i.serverCfg.ReadTimeout) * time.Second,
+		WriteTimeout:   time.Duration(i.serverCfg.WriteTimeout) * time.Second,
+		IdleTimeout:    time.Duration(i.serverCfg.IdleTimeout) * time.Second,
+		MaxHeaderBytes: i.serverCfg.MaxHeaderBytes,
+	}
+
+	if err := i.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		panic(err)
+	}
 }
 
 func (i *RouterServiceProvider) serveTLS(addr string) {
@@ -86,7 +94,7 @@ func (i *RouterServiceProvider) serveTLS(addr string) {
 		panic(err)
 	}
 
-	srv := &http.Server{
+	i.srv = &http.Server{
 		Addr:           addr,
 		Handler:        i.engine,
 		ReadTimeout:    time.Duration(i.serverCfg.ReadTimeout) * time.Second,
@@ -96,9 +104,17 @@ func (i *RouterServiceProvider) serveTLS(addr string) {
 		TLSConfig:      tlsCfg,
 	}
 
-	if err := srv.ListenAndServeTLS(i.serverCfg.TLS.CertFile, i.serverCfg.TLS.KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	if err := i.srv.ListenAndServeTLS(i.serverCfg.TLS.CertFile, i.serverCfg.TLS.KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		panic(err)
 	}
+}
+
+// Shutdown 优雅关闭 HTTP server。
+func (i *RouterServiceProvider) Shutdown(ctx context.Context) error {
+	if i.srv == nil {
+		return nil
+	}
+	return i.srv.Shutdown(ctx)
 }
 
 func (i *RouterServiceProvider) buildTLSConfig() (*tls.Config, error) {
@@ -260,4 +276,13 @@ func (i *RouterServiceProvider) setupMetrics() {
 			"status": "ok",
 		})
 	})
+}
+
+//go:embed router.yaml
+var routerYaml string
+
+func (i *RouterServiceProvider) Conf() map[string]string {
+	return map[string]string{
+		"router.yaml": routerYaml,
+	}
 }

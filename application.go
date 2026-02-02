@@ -328,7 +328,7 @@ func (i *Application) bootServiceProviders(provider ...foundation.ServiceProvide
 		i.injectAppInstance(serviceProvider)
 		serviceProvider.Register()
 
-		cfgFileGen := serviceProvider.GenerateConf()
+		cfgFileGen := serviceProvider.Conf()
 		if cfgFileGen != nil {
 			for fileName, content := range cfgFileGen {
 				confFile := i.GetConfigPath() + "/" + fileName

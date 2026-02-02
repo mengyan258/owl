@@ -17,6 +17,10 @@ type DBServiceProvider struct {
 	app foundation.Application
 }
 
+func (i *DBServiceProvider) Description() string {
+	return "数据库连接与 GORM 初始化"
+}
+
 func (i *DBServiceProvider) Register() {
 
 	i.app.Register(func(c *conf.Configure, l log.Logger) *gorm.DB {
@@ -42,7 +46,7 @@ func (i *DBServiceProvider) Boot() {
 //go:embed database.yaml
 var databaseYaml string
 
-func (i *DBServiceProvider) GenerateConf() map[string]string {
+func (i *DBServiceProvider) Conf() map[string]string {
 	return map[string]string{
 		"database.yaml": databaseYaml,
 	}

@@ -15,6 +15,10 @@ type LogServiceProvider struct {
 	app foundation.Application
 }
 
+func (i *LogServiceProvider) Description() string {
+	return "日志系统与文件日志输出"
+}
+
 type option struct {
 	Level      int    `json:"level"`
 	FileName   string `json:"file-name"`
@@ -50,7 +54,7 @@ func (i *LogServiceProvider) Boot() {
 //go:embed log.yaml
 var logConf string
 
-func (i *LogServiceProvider) GenerateConf() map[string]string {
+func (i *LogServiceProvider) Conf() map[string]string {
 	return map[string]string{
 		"log.yaml": logConf,
 	}
