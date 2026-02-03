@@ -146,7 +146,7 @@ func iteratorMenuWithoutBtn(menu *Menu, level int) {
 }
 
 func iteratorMenu(menu *Menu, level int) {
-	menu.Meta.ShowLink = true
+	//menu.Meta.ShowLink = true
 	menu.Meta.ShowParent = true
 	if level == 1 {
 		menu.ID = menu.Name

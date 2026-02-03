@@ -94,8 +94,10 @@ func NewRouteInfoBuilder(appName string, handle Handler, router *gin.RouterGroup
 			Name: meta.ComponentName,
 			Path: meta.Path,
 			Meta: Meta{
-				Title: zh,
-				Icon:  meta.Icon,
+				Title:      zh,
+				Icon:       meta.Icon,
+				ShowLink:   true,
+				ShowParent: true,
 			},
 			MenuType: MenuTypeMenu,
 		},
