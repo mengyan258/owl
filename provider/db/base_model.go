@@ -3,6 +3,8 @@ package db
 import (
 	"time"
 
+	"bit-labs.cn/owl/utils"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 )
 
@@ -16,11 +18,14 @@ type BaseModel struct {
 }
 
 func (i *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
-	//idGenerator, err := util.NewSnowflake(1, 3)
-	//if err != nil {
-	//	return err
-	//}
-	//i.ID = cast.ToUint(idGenerator.NextVal())
-	//i.ID = uint(rand.Int())
+	idGenerator := utils.NewWorker(1, 3)
+	id, err := idGenerator.NextID()
+	if err != nil {
+		return err
+	}
+	// 如果手动设置了 ID，则不进行设置
+	if i.ID == 0 {
+		i.ID = cast.ToUint(id)
+	}
 	return
 }
