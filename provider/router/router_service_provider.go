@@ -78,7 +78,7 @@ func (i *RouterServiceProvider) Run() {
 		IdleTimeout:    time.Duration(i.serverCfg.IdleTimeout) * time.Second,
 		MaxHeaderBytes: i.serverCfg.MaxHeaderBytes,
 	}
-
+	i.logger.Info("启动 HTTP 服务器", "监听", addr)
 	if err := i.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		panic(err)
 	}
@@ -104,6 +104,7 @@ func (i *RouterServiceProvider) serveTLS(addr string) {
 		TLSConfig:      tlsCfg,
 	}
 
+	i.logger.Info("启动 HTTPS 服务器", "addr", addr)
 	if err := i.srv.ListenAndServeTLS(i.serverCfg.TLS.CertFile, i.serverCfg.TLS.KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		panic(err)
 	}
@@ -114,6 +115,7 @@ func (i *RouterServiceProvider) Shutdown(ctx context.Context) error {
 	if i.srv == nil {
 		return nil
 	}
+	i.logger.Info("开始关闭 HTTP 服务器")
 	return i.srv.Shutdown(ctx)
 }
 
