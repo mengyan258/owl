@@ -255,12 +255,9 @@ func (c *COSStorage) Move(ctx context.Context, srcPath, dstPath string) error {
 // buildPath 构建对象路径
 func (c *COSStorage) buildPath(path string) string {
 	path = strings.TrimPrefix(path, "/")
-	if c.config.DatePath {
-		dateFormat := c.config.DateFormat
-		if dateFormat == "" {
-			dateFormat = "2006/01/02"
-		}
-		datePath := time.Now().Format(dateFormat)
+	dateFormat := strings.TrimSpace(c.config.DateFormat)
+	if dateFormat != "" {
+		datePath := time.Now().Format(normalizeDateFormat(dateFormat))
 		path = datePath + "/" + path
 	}
 	return path

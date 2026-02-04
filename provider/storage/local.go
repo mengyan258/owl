@@ -262,10 +262,9 @@ func (ls *LocalStorage) buildPath(path string) string {
 	path = filepath.Clean(path)
 	path = strings.TrimPrefix(path, "/")
 
-	// 如果启用了日期路径
-	if ls.config.DatePath {
-		now := time.Now()
-		datePath := now.Format(ls.config.DateFormat)
+	dateFormat := strings.TrimSpace(ls.config.DateFormat)
+	if dateFormat != "" {
+		datePath := time.Now().Format(normalizeDateFormat(dateFormat))
 		path = filepath.Join(datePath, path)
 	}
 
@@ -279,10 +278,9 @@ func (ls *LocalStorage) buildURL(path string) string {
 	path = strings.TrimPrefix(path, "/")
 	path = filepath.ToSlash(path)
 
-	// 如果启用了日期路径
-	if ls.config.DatePath {
-		now := time.Now()
-		datePath := now.Format(ls.config.DateFormat)
+	dateFormat := strings.TrimSpace(ls.config.DateFormat)
+	if dateFormat != "" {
+		datePath := time.Now().Format(normalizeDateFormat(dateFormat))
 		path = datePath + "/" + path
 	}
 

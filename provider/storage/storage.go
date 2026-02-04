@@ -12,7 +12,7 @@ import (
 
 // Options 存储配置选项
 type Options struct {
-	Default    string           `json:"default"`
+	Driver     string           `json:"driver"`
 	Local      LocalConfig      `json:"local"`
 	S3         S3Config         `json:"s3"`
 	MinIO      MinIOConfig      `json:"minio"`
@@ -34,7 +34,6 @@ type LocalConfig struct {
 	CreateDirs bool   `json:"create-dirs"`
 	DirMode    uint32 `json:"dir-mode"`
 	FileMode   uint32 `json:"file-mode"`
-	DatePath   bool   `json:"date-path"`
 	DateFormat string `json:"date-format"`
 }
 
@@ -49,7 +48,6 @@ type S3Config struct {
 	PathStyle       bool   `json:"path-style"`
 	ACL             string `json:"acl"`
 	URLPrefix       string `json:"url-prefix"`
-	DatePath        bool   `json:"date-path"`
 	DateFormat      string `json:"date-format"`
 }
 
@@ -62,7 +60,6 @@ type MinIOConfig struct {
 	Bucket          string `json:"bucket"`
 	Region          string `json:"region"`
 	URLPrefix       string `json:"url-prefix"`
-	DatePath        bool   `json:"date-path"`
 	DateFormat      string `json:"date-format"`
 }
 
@@ -74,7 +71,6 @@ type OSSConfig struct {
 	Bucket          string `json:"bucket"`
 	UseSSL          bool   `json:"use-ssl"`
 	URLPrefix       string `json:"url-prefix"`
-	DatePath        bool   `json:"date-path"`
 	DateFormat      string `json:"date-format"`
 }
 
@@ -86,7 +82,6 @@ type COSConfig struct {
 	Bucket     string `json:"bucket"`
 	UseSSL     bool   `json:"use-ssl"`
 	URLPrefix  string `json:"url-prefix"`
-	DatePath   bool   `json:"date-path"`
 	DateFormat string `json:"date-format"`
 }
 
@@ -98,7 +93,6 @@ type QiniuConfig struct {
 	Domain     string `json:"domain"`
 	UseSSL     bool   `json:"use-ssl"`
 	Zone       string `json:"zone"`
-	DatePath   bool   `json:"date-path"`
 	DateFormat string `json:"date-format"`
 }
 
@@ -324,10 +318,45 @@ func (sm *StorageManager) URL(ctx context.Context, path string) (string, error) 
 	return driver.URL(ctx, path)
 }
 
+func normalizeDateFormat(format string) string {
+	format = strings.TrimSpace(format)
+	if format == "" {
+		return ""
+	}
+
+	allowed := func(r rune) bool {
+		if r >= '0' && r <= '9' {
+			return true
+		}
+		switch r {
+		case 'Y', 'm', 'd', 'H', 'i', 's', '-', '_', '/', ':', '.', ' ':
+			return true
+		default:
+			return false
+		}
+	}
+
+	for _, r := range format {
+		if !allowed(r) {
+			return format
+		}
+	}
+
+	replacer := strings.NewReplacer(
+		"Y", "2006",
+		"m", "01",
+		"d", "02",
+		"H", "15",
+		"i", "04",
+		"s", "05",
+	)
+	return replacer.Replace(format)
+}
+
 // setDefaults 设置默认值
 func setDefaults(opt *Options) {
-	if opt.Default == "" {
-		opt.Default = "local"
+	if opt.Driver == "" {
+		opt.Driver = "local"
 	}
 
 	if opt.Local.Root == "" {
@@ -341,9 +370,6 @@ func setDefaults(opt *Options) {
 	}
 	if opt.Local.FileMode == 0 {
 		opt.Local.FileMode = 0644
-	}
-	if opt.Local.DateFormat == "" {
-		opt.Local.DateFormat = "2006/01/02"
 	}
 
 	if opt.Upload.MaxFileSize == 0 {

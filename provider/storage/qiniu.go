@@ -293,13 +293,9 @@ func (q *QiniuStorage) buildPath(path string) string {
 	// 清理路径
 	path = strings.TrimPrefix(path, "/")
 
-	// 如果启用了日期路径
-	if q.config.DatePath {
-		dateFormat := q.config.DateFormat
-		if dateFormat == "" {
-			dateFormat = "2006/01/02"
-		}
-		datePath := time.Now().Format(dateFormat)
+	dateFormat := strings.TrimSpace(q.config.DateFormat)
+	if dateFormat != "" {
+		datePath := time.Now().Format(normalizeDateFormat(dateFormat))
 		path = datePath + "/" + path
 	}
 

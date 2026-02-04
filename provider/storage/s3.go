@@ -304,13 +304,9 @@ func (s *S3Storage) buildPath(path string) string {
 	// 清理路径
 	path = strings.TrimPrefix(path, "/")
 
-	// 如果启用了日期路径
-	if s.config.DatePath {
-		dateFormat := s.config.DateFormat
-		if dateFormat == "" {
-			dateFormat = "2006/01/02"
-		}
-		datePath := time.Now().Format(dateFormat)
+	dateFormat := strings.TrimSpace(s.config.DateFormat)
+	if dateFormat != "" {
+		datePath := time.Now().Format(normalizeDateFormat(dateFormat))
 		path = datePath + "/" + path
 	}
 

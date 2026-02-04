@@ -67,7 +67,7 @@ func (s *StorageServiceProvider) Register() {
 		}
 
 		// 设置默认驱动
-		if err := manager.SetDefaultDriver(opt.Default); err != nil {
+		if err := manager.SetDefaultDriver(opt.Driver); err != nil {
 			owl.PanicIf(err)
 		}
 

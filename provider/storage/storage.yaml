@@ -1,6 +1,6 @@
 # 文件存储配置
 # 默认存储驱动 (local, s3, minio, oss, cos, qiniu)
-default: local
+driver: local
 
 # 本地存储配置
 local:
@@ -14,8 +14,6 @@ local:
   dir-mode: 0755
   # 文件权限
   file-mode: 0644
-  # 是否按日期分目录
-  date-path: true
   # 日期格式
   date-format: "2006/01/02"
 
@@ -39,8 +37,6 @@ s3:
   acl: private
   # URL 前缀
   url-prefix: ""
-  # 是否按日期分目录
-  date-path: true
   # 日期格式
   date-format: "2006/01/02"
 
@@ -60,8 +56,6 @@ minio:
   region: us-east-1
   # URL 前缀
   url-prefix: ""
-  # 是否按日期分目录
-  date-path: true
   # 日期格式
   date-format: "2006/01/02"
 
@@ -79,10 +73,8 @@ oss:
   use-ssl: true
   # URL 前缀
   url-prefix: ""
-  # 是否按日期分目录
-  date-path: true
   # 日期格式
-  date-format: "2006/01/02"
+  date-format: "Y-m-d"
 
 # 腾讯云 COS 配置
 cos:
@@ -98,10 +90,8 @@ cos:
   use-ssl: true
   # URL 前缀
   url-prefix: ""
-  # 是否按日期分目录
-  date-path: true
   # 日期格式
-  date-format: "2006/01/02"
+  date-format: "Y-m-d"
 
 # 七牛云配置
 qiniu:
@@ -117,10 +107,8 @@ qiniu:
   use-ssl: true
   # 区域 (z0/华东, z1/华北, z2/华南, na0/北美, as0/新加坡, 华东浙江2区)
   zone: ""
-  # 是否按日期分目录
-  date-path: true
   # 日期格式
-  date-format: "2006/01/02"
+  date-format: "Y-m-d"
 
 # 文件上传配置
 upload:

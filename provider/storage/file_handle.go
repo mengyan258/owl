@@ -31,7 +31,7 @@ func (i *FileHandle) Upload(ctx *gin.Context) {
 	}
 
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
-	objectPath := "upload/" + uuid.NewString() + ext
+	objectPath := uuid.NewString() + ext
 
 	f, err := fileHeader.Open()
 	if err != nil {
