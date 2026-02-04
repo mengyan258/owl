@@ -6,7 +6,6 @@ import (
 	"bit-labs.cn/owl"
 	"bit-labs.cn/owl/contract/foundation"
 	"bit-labs.cn/owl/provider/conf"
-	"bit-labs.cn/owl/provider/storage/impl"
 )
 
 var _ foundation.ServiceProvider = (*StorageServiceProvider)(nil)
@@ -35,34 +34,34 @@ func (s *StorageServiceProvider) Register() {
 
 		// 初始化本地存储
 		if opt.Local.Root != "" {
-			localStorage := impl.NewLocalStorage(&opt.Local)
+			localStorage := NewLocalStorage(&opt.Local)
 			manager.AddDriver("local", localStorage)
 		}
 
 		// 初始化 S3 存储
 		if opt.S3.AccessKeyID != "" {
-			if s3Storage, err := impl.NewS3Storage(&opt.S3); err == nil {
+			if s3Storage, err := NewS3Storage(&opt.S3); err == nil {
 				manager.AddDriver("s3", s3Storage)
 			}
 		}
 
 		// 初始化 MinIO 存储
 		if opt.MinIO.AccessKeyID != "" {
-			if minioStorage, err := impl.NewMinIOStorage(&opt.MinIO); err == nil {
+			if minioStorage, err := NewMinIOStorage(&opt.MinIO); err == nil {
 				manager.AddDriver("minio", minioStorage)
 			}
 		}
 
 		// 初始化腾讯云 COS 存储
 		if opt.COS.SecretID != "" {
-			if cosStorage, err := impl.NewCOSStorage(&opt.COS); err == nil {
+			if cosStorage, err := NewCOSStorage(&opt.COS); err == nil {
 				manager.AddDriver("cos", cosStorage)
 			}
 		}
 
 		// 初始化七牛云存储
 		if opt.Qiniu.AccessKey != "" {
-			if qiniuStorage, err := impl.NewQiniuStorage(&opt.Qiniu); err == nil {
+			if qiniuStorage, err := NewQiniuStorage(&opt.Qiniu); err == nil {
 				manager.AddDriver("qiniu", qiniuStorage)
 			}
 		}

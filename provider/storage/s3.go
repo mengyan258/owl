@@ -1,4 +1,4 @@
-package impl
+package storage
 
 import (
 	"bytes"
@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"bit-labs.cn/owl/provider/storage"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -26,11 +24,11 @@ type S3Storage struct {
 	client     *s3.S3
 	uploader   *s3manager.Uploader
 	downloader *s3manager.Downloader
-	config     *storage.S3Config
+	config     *S3Config
 }
 
 // NewS3Storage 创建 S3 存储实例
-func NewS3Storage(config *storage.S3Config) (*S3Storage, error) {
+func NewS3Storage(config *S3Config) (*S3Storage, error) {
 	// 创建 AWS 会话
 	awsConfig := &aws.Config{
 		Region: aws.String(config.Region),
@@ -66,7 +64,7 @@ func NewS3Storage(config *storage.S3Config) (*S3Storage, error) {
 }
 
 // Put 上传文件
-func (s *S3Storage) Put(ctx context.Context, path string, reader io.Reader, size int64) (*storage.FileInfo, error) {
+func (s *S3Storage) Put(ctx context.Context, path string, reader io.Reader, size int64) (*FileInfo, error) {
 	key := s.buildPath(path)
 
 	// 读取数据并计算 MD5
@@ -84,7 +82,7 @@ func (s *S3Storage) Put(ctx context.Context, path string, reader io.Reader, size
 		Bucket:      aws.String(s.config.Bucket),
 		Key:         aws.String(key),
 		Body:        bytes.NewReader(buf.Bytes()),
-		ContentType: aws.String(storage.MimeType(path)),
+		ContentType: aws.String(MimeType(path)),
 		ACL:         aws.String(s.getACL()),
 	})
 	if err != nil {
@@ -92,11 +90,11 @@ func (s *S3Storage) Put(ctx context.Context, path string, reader io.Reader, size
 	}
 
 	// 构建文件信息
-	fileInfo := &storage.FileInfo{
+	fileInfo := &FileInfo{
 		Name:        filepath.Base(path),
 		Path:        path,
 		Size:        int64(buf.Len()),
-		ContentType: storage.MimeType(path),
+		ContentType: MimeType(path),
 		Extension:   filepath.Ext(path),
 		URL:         s.buildURL(key),
 		Hash:        fmt.Sprintf("%x", hash.Sum(nil)),
@@ -113,7 +111,7 @@ func (s *S3Storage) Put(ctx context.Context, path string, reader io.Reader, size
 }
 
 // PutFile 上传本地文件
-func (s *S3Storage) PutFile(ctx context.Context, path string, localPath string) (*storage.FileInfo, error) {
+func (s *S3Storage) PutFile(ctx context.Context, path string, localPath string) (*FileInfo, error) {
 	file, err := os.Open(localPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open local file: %w", err)
@@ -218,10 +216,10 @@ func (s *S3Storage) URL(ctx context.Context, path string) (string, error) {
 }
 
 // List 列出文件
-func (s *S3Storage) List(ctx context.Context, prefix string) ([]*storage.FileInfo, error) {
+func (s *S3Storage) List(ctx context.Context, prefix string) ([]*FileInfo, error) {
 	keyPrefix := s.buildPath(prefix)
 
-	var files []*storage.FileInfo
+	var files []*FileInfo
 
 	err := s.client.ListObjectsV2PagesWithContext(ctx, &s3.ListObjectsV2Input{
 		Bucket: aws.String(s.config.Bucket),
@@ -234,11 +232,11 @@ func (s *S3Storage) List(ctx context.Context, prefix string) ([]*storage.FileInf
 				relativePath = *obj.Key
 			}
 
-			fileInfo := &storage.FileInfo{
+			fileInfo := &FileInfo{
 				Name:        filepath.Base(*obj.Key),
 				Path:        relativePath,
 				Size:        *obj.Size,
-				ContentType: storage.MimeType(*obj.Key),
+				ContentType: MimeType(*obj.Key),
 				Extension:   filepath.Ext(*obj.Key),
 				URL:         s.buildURL(*obj.Key),
 				Hash:        strings.Trim(*obj.ETag, "\""),

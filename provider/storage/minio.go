@@ -1,4 +1,4 @@
-package impl
+package storage
 
 import (
 	"context"
@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"bit-labs.cn/owl/provider/storage"
-
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -18,11 +16,11 @@ import (
 // MinIOStorage MinIO 存储实现
 type MinIOStorage struct {
 	client *minio.Client
-	config *storage.MinIOConfig
+	config *MinIOConfig
 }
 
 // NewMinIOStorage 创建 MinIO 存储实例
-func NewMinIOStorage(config *storage.MinIOConfig) (*MinIOStorage, error) {
+func NewMinIOStorage(config *MinIOConfig) (*MinIOStorage, error) {
 	// 创建 MinIO 客户端
 	client, err := minio.New(config.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(config.AccessKeyID, config.SecretAccessKey, ""),
@@ -56,23 +54,23 @@ func NewMinIOStorage(config *storage.MinIOConfig) (*MinIOStorage, error) {
 }
 
 // Put 上传文件
-func (m *MinIOStorage) Put(ctx context.Context, path string, reader io.Reader, size int64) (*storage.FileInfo, error) {
+func (m *MinIOStorage) Put(ctx context.Context, path string, reader io.Reader, size int64) (*FileInfo, error) {
 	objectName := m.buildPath(path)
 
 	// 上传文件
 	info, err := m.client.PutObject(ctx, m.config.Bucket, objectName, reader, size, minio.PutObjectOptions{
-		ContentType: storage.MimeType(path),
+		ContentType: MimeType(path),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload file: %w", err)
 	}
 
 	// 构建文件信息
-	fileInfo := &storage.FileInfo{
+	fileInfo := &FileInfo{
 		Name:        filepath.Base(path),
 		Path:        path,
 		Size:        info.Size,
-		ContentType: storage.MimeType(path),
+		ContentType: MimeType(path),
 		Extension:   filepath.Ext(path),
 		URL:         m.buildURL(objectName),
 		Hash:        info.ETag,
@@ -89,7 +87,7 @@ func (m *MinIOStorage) Put(ctx context.Context, path string, reader io.Reader, s
 }
 
 // PutFile 上传本地文件
-func (m *MinIOStorage) PutFile(ctx context.Context, path string, localPath string) (*storage.FileInfo, error) {
+func (m *MinIOStorage) PutFile(ctx context.Context, path string, localPath string) (*FileInfo, error) {
 	file, err := os.Open(localPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open local file: %w", err)
@@ -174,10 +172,10 @@ func (m *MinIOStorage) URL(ctx context.Context, path string) (string, error) {
 }
 
 // List 列出文件
-func (m *MinIOStorage) List(ctx context.Context, prefix string) ([]*storage.FileInfo, error) {
+func (m *MinIOStorage) List(ctx context.Context, prefix string) ([]*FileInfo, error) {
 	objectPrefix := m.buildPath(prefix)
 
-	var files []*storage.FileInfo
+	var files []*FileInfo
 
 	for object := range m.client.ListObjects(ctx, m.config.Bucket, minio.ListObjectsOptions{
 		Prefix:    objectPrefix,
@@ -193,11 +191,11 @@ func (m *MinIOStorage) List(ctx context.Context, prefix string) ([]*storage.File
 			relativePath = object.Key
 		}
 
-		fileInfo := &storage.FileInfo{
+		fileInfo := &FileInfo{
 			Name:        filepath.Base(object.Key),
 			Path:        relativePath,
 			Size:        object.Size,
-			ContentType: storage.MimeType(object.Key),
+			ContentType: MimeType(object.Key),
 			Extension:   filepath.Ext(object.Key),
 			URL:         m.buildURL(object.Key),
 			Hash:        object.ETag,

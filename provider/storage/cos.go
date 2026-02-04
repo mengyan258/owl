@@ -1,4 +1,4 @@
-package impl
+package storage
 
 import (
 	"bytes"
@@ -13,19 +13,17 @@ import (
 	"strings"
 	"time"
 
-	storage2 "bit-labs.cn/owl/provider/storage"
-
 	"github.com/tencentyun/cos-go-sdk-v5"
 )
 
 // COSStorage 腾讯云 COS 存储实现
 type COSStorage struct {
 	client *cos.Client
-	config *storage2.COSConfig
+	config *COSConfig
 }
 
 // NewCOSStorage 创建 COS 存储实例
-func NewCOSStorage(config *storage2.COSConfig) (*COSStorage, error) {
+func NewCOSStorage(config *COSConfig) (*COSStorage, error) {
 	scheme := "https"
 	if !config.UseSSL {
 		scheme = "http"
@@ -53,7 +51,7 @@ func NewCOSStorage(config *storage2.COSConfig) (*COSStorage, error) {
 }
 
 // Put 上传文件
-func (c *COSStorage) Put(ctx context.Context, path string, reader io.Reader, size int64) (*storage2.FileInfo, error) {
+func (c *COSStorage) Put(ctx context.Context, path string, reader io.Reader, size int64) (*FileInfo, error) {
 	key := c.buildPath(path)
 
 	// 读取数据并计算 MD5
@@ -68,18 +66,18 @@ func (c *COSStorage) Put(ctx context.Context, path string, reader io.Reader, siz
 	// 上传文件
 	_, err := c.client.Object.Put(ctx, key, bytes.NewReader(buf.Bytes()), &cos.ObjectPutOptions{
 		ObjectPutHeaderOptions: &cos.ObjectPutHeaderOptions{
-			ContentType: storage2.MimeType(path),
+			ContentType: MimeType(path),
 		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to upload file: %w", err)
 	}
 
-	fileInfo := &storage2.FileInfo{
+	fileInfo := &FileInfo{
 		Name:        filepath.Base(path),
 		Path:        path,
 		Size:        int64(buf.Len()),
-		ContentType: storage2.MimeType(path),
+		ContentType: MimeType(path),
 		Extension:   filepath.Ext(path),
 		URL:         c.buildURL(key),
 		Hash:        fmt.Sprintf("%x", hash.Sum(nil)),
@@ -95,7 +93,7 @@ func (c *COSStorage) Put(ctx context.Context, path string, reader io.Reader, siz
 }
 
 // PutFile 上传本地文件
-func (c *COSStorage) PutFile(ctx context.Context, path string, localPath string) (*storage2.FileInfo, error) {
+func (c *COSStorage) PutFile(ctx context.Context, path string, localPath string) (*FileInfo, error) {
 	file, err := os.Open(localPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open local file: %w", err)
@@ -180,9 +178,9 @@ func (c *COSStorage) URL(ctx context.Context, path string) (string, error) {
 }
 
 // List 列出文件
-func (c *COSStorage) List(ctx context.Context, prefix string) ([]*storage2.FileInfo, error) {
+func (c *COSStorage) List(ctx context.Context, prefix string) ([]*FileInfo, error) {
 	objectPrefix := c.buildPath(prefix)
-	var files []*storage2.FileInfo
+	var files []*FileInfo
 
 	marker := ""
 	for {
@@ -201,11 +199,11 @@ func (c *COSStorage) List(ctx context.Context, prefix string) ([]*storage2.FileI
 				relativePath = obj.Key
 			}
 
-			files = append(files, &storage2.FileInfo{
+			files = append(files, &FileInfo{
 				Name:        filepath.Base(obj.Key),
 				Path:        relativePath,
 				Size:        obj.Size,
-				ContentType: storage2.MimeType(obj.Key),
+				ContentType: MimeType(obj.Key),
 				Extension:   filepath.Ext(obj.Key),
 				URL:         c.buildURL(obj.Key),
 				UploadTime:  time.Now(),

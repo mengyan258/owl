@@ -308,6 +308,17 @@ func (i *Application) Run() {
 	PanicIf(err)
 }
 
+func (i *Application) ShowProviders() {
+	i.l.Info("============================已注册服务提供者==========================================")
+	for _, provider := range i.serviceProvider {
+		providerType := reflect.TypeOf(provider).String()
+		i.l.Info(providerType, provider.Description())
+	}
+
+	i.l.Info("======================================================================================")
+
+}
+
 // 注册基础服务提供者
 func (i *Application) registerBaseServiceProviders() {
 	var baseProviders = []foundation.ServiceProvider{
@@ -320,6 +331,12 @@ func (i *Application) registerBaseServiceProviders() {
 	}
 
 	i.bootServiceProviders(baseProviders...)
+
+	err := i.Invoke(func(l logContract.Logger) {
+		i.l = l
+	})
+
+	PanicIf(err)
 }
 
 func (i *Application) bootServiceProviders(provider ...foundation.ServiceProvider) {
@@ -372,6 +389,8 @@ func (i *Application) newSubApp(apps ...SubApp) {
 	for _, serviceProvider := range i.serviceProvider {
 		serviceProvider.Boot()
 	}
+
+	i.ShowProviders()
 }
 
 func (i *Application) injectAppInstance(target any) {

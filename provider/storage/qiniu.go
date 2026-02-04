@@ -1,4 +1,4 @@
-package impl
+package storage
 
 import (
 	"bytes"
@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	storage2 "bit-labs.cn/owl/provider/storage"
-
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
 )
@@ -21,14 +19,14 @@ import (
 // QiniuStorage 七牛云存储实现
 type QiniuStorage struct {
 	mac           *qbox.Mac
-	config        *storage2.QiniuConfig
+	config        *QiniuConfig
 	bucketManager *storage.BucketManager
 	uploader      *storage.FormUploader
 	cfg           *storage.Config
 }
 
 // NewQiniuStorage 创建七牛云存储实例
-func NewQiniuStorage(config *storage2.QiniuConfig) (*QiniuStorage, error) {
+func NewQiniuStorage(config *QiniuConfig) (*QiniuStorage, error) {
 	// 创建认证对象
 	mac := qbox.NewMac(config.AccessKey, config.SecretKey)
 
@@ -76,7 +74,7 @@ func NewQiniuStorage(config *storage2.QiniuConfig) (*QiniuStorage, error) {
 }
 
 // Put 上传文件
-func (q *QiniuStorage) Put(ctx context.Context, path string, reader io.Reader, size int64) (*storage2.FileInfo, error) {
+func (q *QiniuStorage) Put(ctx context.Context, path string, reader io.Reader, size int64) (*FileInfo, error) {
 	key := q.buildPath(path)
 
 	// 读取数据并计算 MD5
@@ -105,11 +103,11 @@ func (q *QiniuStorage) Put(ctx context.Context, path string, reader io.Reader, s
 	}
 
 	// 构建文件信息
-	fileInfo := &storage2.FileInfo{
+	fileInfo := &FileInfo{
 		Name:        filepath.Base(path),
 		Path:        path,
 		Size:        int64(buf.Len()),
-		ContentType: storage2.MimeType(path),
+		ContentType: MimeType(path),
 		Extension:   filepath.Ext(path),
 		URL:         q.buildURL(key),
 		Hash:        fmt.Sprintf("%x", hash.Sum(nil)),
@@ -125,7 +123,7 @@ func (q *QiniuStorage) Put(ctx context.Context, path string, reader io.Reader, s
 }
 
 // PutFile 上传本地文件
-func (q *QiniuStorage) PutFile(ctx context.Context, path string, localPath string) (*storage2.FileInfo, error) {
+func (q *QiniuStorage) PutFile(ctx context.Context, path string, localPath string) (*FileInfo, error) {
 	file, err := os.Open(localPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open local file: %w", err)
@@ -214,10 +212,10 @@ func (q *QiniuStorage) URL(ctx context.Context, path string) (string, error) {
 }
 
 // List 列出文件
-func (q *QiniuStorage) List(ctx context.Context, prefix string) ([]*storage2.FileInfo, error) {
+func (q *QiniuStorage) List(ctx context.Context, prefix string) ([]*FileInfo, error) {
 	keyPrefix := q.buildPath(prefix)
 
-	var files []*storage2.FileInfo
+	var files []*FileInfo
 	marker := ""
 	limit := 1000
 
@@ -234,7 +232,7 @@ func (q *QiniuStorage) List(ctx context.Context, prefix string) ([]*storage2.Fil
 				relativePath = entry.Key
 			}
 
-			fileInfo := &storage2.FileInfo{
+			fileInfo := &FileInfo{
 				Name:        filepath.Base(entry.Key),
 				Path:        relativePath,
 				Size:        entry.Fsize,

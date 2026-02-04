@@ -1,4 +1,4 @@
-package impl
+package storage
 
 import (
 	"context"
@@ -9,24 +9,22 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"bit-labs.cn/owl/provider/storage"
 )
 
 // LocalStorage 本地存储实现
 type LocalStorage struct {
-	config *storage.LocalConfig
+	config *LocalConfig
 }
 
 // NewLocalStorage 创建本地存储实例
-func NewLocalStorage(config *storage.LocalConfig) *LocalStorage {
+func NewLocalStorage(config *LocalConfig) *LocalStorage {
 	return &LocalStorage{
 		config: config,
 	}
 }
 
 // Put 上传文件
-func (ls *LocalStorage) Put(ctx context.Context, path string, reader io.Reader, size int64) (*storage.FileInfo, error) {
+func (ls *LocalStorage) Put(ctx context.Context, path string, reader io.Reader, size int64) (*FileInfo, error) {
 	// 构建完整路径
 	fullPath := ls.buildPath(path)
 
@@ -62,7 +60,7 @@ func (ls *LocalStorage) Put(ctx context.Context, path string, reader io.Reader, 
 	}
 
 	// 构建文件信息
-	fileInfo := &storage.FileInfo{
+	fileInfo := &FileInfo{
 		Name:       filepath.Base(path),
 		Path:       path,
 		Size:       written,
@@ -77,7 +75,7 @@ func (ls *LocalStorage) Put(ctx context.Context, path string, reader io.Reader, 
 }
 
 // PutFile 上传本地文件
-func (ls *LocalStorage) PutFile(ctx context.Context, path string, localPath string) (*storage.FileInfo, error) {
+func (ls *LocalStorage) PutFile(ctx context.Context, path string, localPath string) (*FileInfo, error) {
 	file, err := os.Open(localPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open local file: %w", err)
@@ -157,8 +155,8 @@ func (ls *LocalStorage) URL(ctx context.Context, path string) (string, error) {
 }
 
 // List 列出文件
-func (ls *LocalStorage) List(ctx context.Context, prefix string) ([]*storage.FileInfo, error) {
-	var files []*storage.FileInfo
+func (ls *LocalStorage) List(ctx context.Context, prefix string) ([]*FileInfo, error) {
+	var files []*FileInfo
 
 	prefixPath := ls.buildPath(prefix)
 
@@ -180,7 +178,7 @@ func (ls *LocalStorage) List(ctx context.Context, prefix string) ([]*storage.Fil
 		// 标准化路径分隔符
 		relPath = filepath.ToSlash(relPath)
 
-		fileInfo := &storage.FileInfo{
+		fileInfo := &FileInfo{
 			Name:       info.Name(),
 			Path:       relPath,
 			Size:       info.Size(),
