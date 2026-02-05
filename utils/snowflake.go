@@ -43,6 +43,7 @@ type idGenerator struct {
 
 var i *idGenerator
 var once sync.Once
+var initOnce sync.Once
 
 func GetInstance() *idGenerator {
 	once.Do(func() {
@@ -51,8 +52,19 @@ func GetInstance() *idGenerator {
 	return i
 }
 
-func InitSnowFlakeWorker(workerID, dataCenterID int64) {
-	GetInstance().w = NewWorker(workerID, dataCenterID)
+func InitSnowFlakeWorker(workerID, dataCenterID int64) error {
+	initOnce.Do(func() {
+		GetInstance().w = NewWorker(workerID, dataCenterID)
+	})
+
+	w := GetInstance().w
+	if w == nil {
+		return errors.New("snowflake worker not initialized")
+	}
+	if w.WorkerID != workerID || w.DataCenterID != dataCenterID {
+		return errors.New("snowflake worker already initialized with different ids")
+	}
+	return nil
 }
 
 type Worker struct {
@@ -97,7 +109,11 @@ func (w *Worker) getMilliSeconds() int64 {
 @return error 返回的错误
 */
 func SnowFlakeNextID() (int64, error) {
-	return GetInstance().w.NextID()
+	w := GetInstance().w
+	if w == nil {
+		return 0, errors.New("snowflake worker not initialized")
+	}
+	return w.NextID()
 }
 
 /*

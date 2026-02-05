@@ -20,8 +20,8 @@ type BaseModel struct {
 }
 
 func (i *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
-	idGenerator := utils.NewWorker(1, 3)
-	id, err := idGenerator.NextID()
+
+	id, err := utils.SnowFlakeNextID()
 	if err != nil {
 		return err
 	}

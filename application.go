@@ -256,6 +256,9 @@ func (i *Application) Terminate() {
 }
 
 func NewApp(apps ...SubApp) *Application {
+	// 初始化雪花算法，id生成器
+	err := utils.InitSnowFlakeWorker(1, 3)
+
 	i := &Application{
 		rootCmd:   &cobra.Command{Use: "owl"},
 		Container: dig.New(),
@@ -266,6 +269,9 @@ func NewApp(apps ...SubApp) *Application {
 	i.registerBaseBindings()
 	i.registerBaseServiceProviders()
 	i.newSubApp(apps...)
+
+	PanicIf(err)
+
 	return i
 }
 
