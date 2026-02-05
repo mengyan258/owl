@@ -30,6 +30,7 @@ type RouterInfo struct {
 	Description      string          `json:"description"`      // 描述
 	AccessLevel      AccessLevel     `json:"accessLevel"`      // 访问级别
 	handle           gin.HandlerFunc // 处理函数
+	operateLog       bool            // 是否记录操作日志
 }
 
 // 全局路由注册表，用于保存所有注册进来的路由
@@ -114,6 +115,7 @@ func (i *RouterInfoBuilder) add(method, path string, accessLevel AccessLevel, ha
 		Module:           i.moduleZh,
 		AccessLevel:      accessLevel,
 		handle:           handle,
+		operateLog:       method != http.MethodGet,
 	}
 
 	return i
@@ -173,6 +175,16 @@ func (i *RouterInfoBuilder) Name(n string) *RouterInfoBuilder {
 	return i
 }
 
+func (i *RouterInfoBuilder) WithoutOperateLog() *RouterInfoBuilder {
+	i.currentRouter.operateLog = false
+	return i
+}
+
+func (i *RouterInfoBuilder) WithOperateLog() *RouterInfoBuilder {
+	i.currentRouter.operateLog = true
+	return i
+}
+
 // Deps 此接口依赖的其他接口，比如说修改用户，则需要 `获取用户详情` `更新用户`  两个接口
 func (i *RouterInfoBuilder) Deps(dep ...Dep) *RouterInfoBuilder {
 	i.deps = append(i.deps, dep...)
@@ -198,6 +210,10 @@ func (i *RouterInfoBuilder) Use(handle ...gin.HandlerFunc) *RouterInfoBuilder {
 
 func (i *RouterInfoBuilder) GetMenu() *Menu {
 	return i.menu
+}
+
+func (i RouterInfo) ShouldOperateLog() bool {
+	return i.operateLog
 }
 
 // 获取函数名
