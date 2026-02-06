@@ -331,7 +331,6 @@ func (i *Application) registerBaseServiceProviders() {
 		&conf.ConfServiceProvider{},
 		&log.LogServiceProvider{},
 		&event.EventServiceProvider{},
-		&router.RouterServiceProvider{},
 		&appconf.AppConfigServiceProvider{},
 		&validator.ValidatorServiceProvider{},
 	}
